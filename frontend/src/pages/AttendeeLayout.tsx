@@ -61,6 +61,11 @@ export function AttendeeLayout() {
   );
   useExchangeFeed(user?.role === 'attendee' ? user.id : null, onExchange);
 
+  async function handleLogout() {
+    await logout(); // POST /logout, clear token + query cache
+    navigate('/login', { replace: true });
+  }
+
   const shell = useMemo<AttendeeShellContext>(() => ({ showToast, celebrate }), [showToast, celebrate]);
 
   const unlockedCount = me.data?.zone_progress.filter((z) => z.unlocked).length ?? 0;
@@ -70,14 +75,17 @@ export function AttendeeLayout() {
 
   return (
     <div className="attendee-shell">
-      <TopBar name={me.data?.name ?? user?.name ?? ''} points={me.data?.points ?? user?.points ?? 0} unlockedCount={unlockedCount} />
+      <TopBar
+        name={me.data?.name ?? user?.name ?? ''}
+        role={user?.role ?? 'attendee'}
+        points={me.data?.points ?? user?.points ?? 0}
+        unlockedCount={unlockedCount}
+        onLogout={handleLogout}
+      />
       <main className={`attendee-main ${activeTab === 'map' ? 'map-main' : 'scroll-main'}`}>
         <Outlet context={shell} />
       </main>
       <BottomTabs active={activeTab} onChange={(tab) => navigate(tab === 'map' ? '/' : '/leaderboard')} />
-      <button className="page-logout" type="button" onClick={() => void logout()} aria-label="Log out" title="Log out">
-        ⎋
-      </button>
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
       {celebrating !== undefined && (
         <UnlockCelebration key={celebrating.id} zoneId={celebrating.zoneId} bonusPoints={bonus} onDone={finishCelebration} />

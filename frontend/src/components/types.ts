@@ -26,7 +26,14 @@ export type AuthFormProps = {
 };
 
 
-export type TopBarProps = { name: string; points: number; unlockedCount: number };
+export type TopBarProps = {
+  name: string;
+  role: Role;
+  points: number;
+  unlockedCount: number;
+  /* from the avatar menu; the page logs out and goes to /login */
+  onLogout: () => void;
+};
 
 
 export type BottomTabsProps = {

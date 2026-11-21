@@ -4,11 +4,9 @@
 
 ## Integration requests (Tak)
 
-### Logout control (needs a decision)
+### Logout control — resolved
 
-No component offers a way to log out. Proposal: add an optional `onLogout?: () => void` to `TopBarProps` (for example, a menu on the avatar), and a host equivalent, either a small host top bar or `onLogout` on `HostEventListProps`.
-
-Until then, the pages render a temporary control outside `components/`: a round "⎋" button above the bottom-right corner of the attendee map and leaderboard, and a "Signed in as … · Log out" row on the host pages (`pages/HostHeader.tsx`). These will be removed once a component provides logout.
+`TopBarProps` now has `role` and `onLogout`. Tapping the avatar opens a small menu with name, role, points and "Log out". The temporary round logout button on the attendee screens has been removed. The host pages (which have no TopBar) still use the "Signed in as … · Log out" row in `pages/HostHeader.tsx`.
 
 ### Bug: address search reloads the page (blocks "create by address search")
 
