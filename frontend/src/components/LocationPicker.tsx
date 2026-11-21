@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { divIcon, type Marker as LeafletMarker } from 'leaflet';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import type { LatLng, LocationPickerProps } from './types';
@@ -35,19 +35,29 @@ function DragPin({ value, onChange }: { value: LatLng; onChange: LocationPickerP
 
 export function LocationPicker({ value, onChange, onSearch, isSearching, searchError, zonePreview }: LocationPickerProps) {
   const [query, setQuery] = useState('');
+  const [coolingDown, setCoolingDown] = useState(false);
+  const cooldownTimer = useRef<number | null>(null);
   const mapCenter = value ?? center;
+
+  useEffect(() => () => {
+    if (cooldownTimer.current !== null) window.clearTimeout(cooldownTimer.current);
+  }, []);
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const search = query.trim();
-    if (search && !isSearching) onSearch(search);
+    if (search && !isSearching && !coolingDown) {
+      onSearch(search);
+      setCoolingDown(true);
+      cooldownTimer.current = window.setTimeout(() => setCoolingDown(false), 1000);
+    }
   }
 
   return (
     <section className="location-picker" aria-label="Choose the event pin">
       <form className="location-search" onSubmit={submitSearch}>
         <label className="location-search-input"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search an address" aria-label="Search an address" /></label>
-        <button className="ui-button" type="submit" disabled={isSearching || query.trim().length === 0}>{isSearching ? 'Searching…' : 'Search'}</button>
+        <button className="ui-button" type="submit" disabled={isSearching || coolingDown || query.trim().length === 0}>{isSearching ? 'Searching…' : coolingDown ? 'Wait a moment' : 'Search'}</button>
       </form>
       {searchError && <p className="location-error" role="alert">{searchError}</p>}
       <div className="location-map-frame">
