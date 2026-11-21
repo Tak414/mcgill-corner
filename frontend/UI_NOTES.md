@@ -8,17 +8,14 @@
 
 `TopBarProps` now has `role` and `onLogout`. Tapping the avatar opens a small menu with name, role, points and "Log out". The temporary round logout button on the attendee screens has been removed. The host pages (which have no TopBar) still use the "Signed in as … · Log out" row in `pages/HostHeader.tsx`.
 
-### Bug: address search reloads the page (blocks "create by address search")
+### Address search reloaded the page — fixed
 
-`EventForm` renders `<LocationPicker>` inside its `<form>`, and `LocationPicker` renders its own `<form className="location-search">`. Nested forms are invalid HTML, and React warns about them in the console ("`<form>` cannot be a descendant of `<form>`"). In the real app (headless Chrome, found during the step 7 walkthrough), pressing **Search** does a native GET submit to `/host/new?`. The page reloads, every field is cleared, and `onSearch` is never called. Tap/drag still works.
+`LocationPicker` rendered its own `<form>` inside `EventForm`'s `<form>`. Nested forms broke submission: pressing Search did a native GET to `/host/new?` and cleared the form. The search bar is now a `div` with a `type="button"` Search button. Enter in the search box searches and does not submit the event form. Checked in headless Chrome: search drops the pin (zone 45 preview), and a second Search press or Enter creates no event.
 
-Proposed fix (inside `LocationPicker`, no prop changes):
-- Replace `<form className="location-search" onSubmit={submitSearch}>` with `<div className="location-search" role="search">`.
-- Make the Search button `type="button"` with `onClick={runSearch}`.
-- On the input, add `onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); runSearch(); } }}`. The `preventDefault` stops Enter from submitting the outer event form.
+### FogMap progress card covered the zoom control — fixed
 
-The integration side is ready: `CreateEventPage.onSearch` → `lib/nominatim.ts` was checked in the browser ("3630 Rue University" → zone 45; a Toronto query → "no match").
+The zoom control is now at the bottom right (`zoomControl={false}` plus `<ZoomControl position="bottomright" />`).
 
-### Minor: FogMap progress card covers the zoom control
+### CodeInput props
 
-In the full-screen map, `.map-progress-card` ("Your map · N zones open") sits over Leaflet's top-left +/− zoom control, so the control can't be clicked. Suggest moving the zoom control (`zoomControl={false}` plus `<ZoomControl position="bottomright" />`) or offsetting the card.
+`CodeInputProps` now lives in `types.ts` with the other props types.

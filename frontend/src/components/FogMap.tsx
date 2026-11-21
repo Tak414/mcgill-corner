@@ -1,5 +1,5 @@
 import { divIcon } from 'leaflet';
-import { MapContainer, Marker, Popup, Rectangle, TileLayer, Tooltip } from 'react-leaflet';
+import { MapContainer, Marker, Popup, Rectangle, TileLayer, Tooltip, ZoomControl } from 'react-leaflet';
 import type { FogMapProps, EventSummary } from './types';
 
 const mcgill: [number, number] = [45.5048, -73.5772];
@@ -20,11 +20,13 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
 
   return (
     <div className="fog-map-wrap">
-      <MapContainer className="fog-map" center={mcgill} zoom={12} scrollWheelZoom aria-label="Map of McGill and nearby event zones">
+      <MapContainer className="fog-map" center={mcgill} zoom={12} zoomControl={false} scrollWheelZoom aria-label="Map of McGill and nearby event zones">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {/* top-left is taken by the progress card */}
+        <ZoomControl position="bottomright" />
         {zones.cells.map((cell) => {
           const progress = progressByZone.get(cell.id);
           const unlocked = progress?.unlocked === true;

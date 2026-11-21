@@ -66,6 +66,13 @@ export type EventSheetProps = {
 };
 
 
+export type CodeInputProps = {
+  isSubmitting: boolean;
+  /* exactly 4 digits */
+  onSubmitCode: (code: string) => void;
+};
+
+
 export type ExchangeResultProps =
   | { status: 'pending'; partnerName: string; onClose: () => void }
   | {
