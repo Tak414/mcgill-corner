@@ -8,7 +8,8 @@ export { EventSheet } from './EventSheet';
 export { ExchangeResult } from './ExchangeResult';
 export { UnlockCelebration } from './UnlockCelebration';
 export { ToastStack } from './ToastStack';
-export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, ToastStackProps, ToastItem } from './types';
+export { Leaderboard } from './Leaderboard';
+export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps } from './types';
 
 export type {
   Zones,
