@@ -5,7 +5,11 @@ import { isApiError } from './api';
 import { AuthProvider } from './auth';
 import { AuthPage } from './pages/AuthPage';
 import { RequireLoggedOut, RequireRole } from './pages/guards';
-import { CreateEventPage, HostEventsPage, LeaderboardPage, MapPage } from './pages/_placeholders';
+import { AttendeeLayout } from './pages/AttendeeLayout';
+import { CreateEventPage } from './pages/CreateEventPage';
+import { HostEventsPage } from './pages/HostEventsPage';
+import { LeaderboardPage } from './pages/LeaderboardPage';
+import { MapPage } from './pages/MapPage';
 import './pages/pages.css';
 
 const queryClient = new QueryClient({
@@ -31,8 +35,10 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<RequireLoggedOut><AuthPage mode="login" /></RequireLoggedOut>} />
             <Route path="/register" element={<RequireLoggedOut><AuthPage mode="register" /></RequireLoggedOut>} />
-            <Route path="/" element={<RequireRole role="attendee"><MapPage /></RequireRole>} />
-            <Route path="/leaderboard" element={<RequireRole role="attendee"><LeaderboardPage /></RequireRole>} />
+            <Route element={<RequireRole role="attendee"><AttendeeLayout /></RequireRole>}>
+              <Route path="/" element={<MapPage />} />
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
+            </Route>
             <Route path="/host" element={<RequireRole role="host"><HostEventsPage /></RequireRole>} />
             <Route path="/host/new" element={<RequireRole role="host"><CreateEventPage /></RequireRole>} />
             {Gallery && <Route path="/gallery" element={<Suspense fallback={null}><Gallery /></Suspense>} />}
