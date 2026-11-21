@@ -99,6 +99,11 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .map-popup strong { color: var(--unlock-ink); }
 .map-popup span,.map-popup small { color: #69766f; }
 @media (max-width: 440px) { .map-progress-card { top: 12px; left: 12px; gap: 8px; padding: 10px 11px; } .map-compass { top: 13px; right: 12px; } }
+.code-input { display: grid; gap: 8px; }
+.code-entry-row { display: flex; gap: 9px; }
+.code-entry { min-width: 0; min-height: 58px; letter-spacing: .34em; text-align: center; font-size: 1.35rem; font-weight: 850; }
+.code-entry::placeholder { color: #bdc9c2; }
+.code-submit { width: 58px; min-width: 58px; min-height: 58px; padding: 0; font-size: 1.4rem; }
 @media (max-width: 640px) {
   .ui-page { padding: 16px; }
   .gallery-shell { padding: 20px 12px 40px; }
