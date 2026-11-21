@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventRsvpController;
+use App\Http\Controllers\Api\ExchangeController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register'])->name('register');
@@ -15,4 +16,5 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
     Route::post('/events/{event}/rsvp', [EventRsvpController::class, 'store'])->name('events.rsvp.store');
     Route::delete('/events/{event}/rsvp', [EventRsvpController::class, 'destroy'])->name('events.rsvp.destroy');
+    Route::post('/events/{event}/exchange', [ExchangeController::class, 'store'])->name('events.exchange.store');
 });
