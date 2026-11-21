@@ -78,6 +78,10 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--unlock-accent); box-shadow: 0 0 0 3px #d9eee4; }
 .topbar-avatar { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border: 1px solid #cfdfd4; border-radius: 50%; background: #e5f1e9; color: var(--unlock-accent-dark); font-size: .74rem; font-weight: 850; }
 @media (max-width: 440px) { .topbar { padding: 10px 13px; } .topbar-brand { gap: 7px; font-size: .75rem; } .topbar-stats { gap: 5px; } .topbar-zones,.topbar-points { padding: 0 8px; font-size: .68rem; } }
+.bottom-tabs { position: absolute; z-index: 700; left: 50%; bottom: 22px; display: flex; gap: 5px; width: max-content; max-width: calc(100% - 28px); padding: 6px; transform: translateX(-50%); border: 1px solid rgba(229,235,231,.85); border-radius: 999px; background: rgba(255,254,250,.96); box-shadow: 0 10px 32px rgba(26,52,43,.2); backdrop-filter: blur(16px); }
+.bottom-tabs button { display: flex; min-width: 112px; min-height: 48px; align-items: center; justify-content: center; gap: 8px; padding: 0 17px; border: 0; border-radius: 999px; background: transparent; color: #50615a; font-size: .82rem; font-weight: 750; }
+.bottom-tabs button.active { background: var(--unlock-ink); color: white; }
+.bottom-tabs svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 640px) {
   .ui-page { padding: 16px; }
   .gallery-shell { padding: 20px 12px 40px; }
