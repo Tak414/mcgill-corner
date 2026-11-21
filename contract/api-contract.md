@@ -1,4 +1,4 @@
-# API Contract v0.2.1 — CodeJam 16
+# API Contract v0.2.2 — CodeJam 16
 
 Frontend: React SPA (mobile web, Leaflet). Backend: Laravel JSON API (Sanctum tokens).
 The two sides share **only** the files in `/contract`:
@@ -9,6 +9,7 @@ The two sides share **only** the files in `/contract`:
 Any change → bump the version in **both** files, open a PR, and tell the whole team.
 
 **Changelog**
+- v0.2.2 — Coordinate validation order clarified: wrong signs (lat ≤ 0 or lng ≥ 0) → `VALIDATION_FAILED`; valid signs but outside the grid → `OUTSIDE_GRID`. `openapi.yaml` no longer puts the grid range on the lat/lng fields.
 - v0.2.1 — Event location: map-tap fallback when address search fails; Nominatim parameters fixed; demo seed events use hard-coded coordinates. `openapi.yaml` added as the source of truth for shapes; `NOT_FOUND` error added for unknown event ids.
 - v0.2 — Confirmed rules (mutual code entry, 10×10 grid, points, code window).
 
@@ -51,7 +52,11 @@ Any change → bump the version in **both** files, open a PR, and tell the whole
    - `https://nominatim.openstreetmap.org/search?format=json&limit=1&bounded=1&viewbox=-73.68,45.58,-73.50,45.44&q=<query>` with `Accept-Language: en,fr`.
 2. **Fallback: tap the map.** If search fails or is rate-limited, the host taps the map to drop the pin. **The form must always be submittable without a successful search.**
 - The server validates lat/lng and **computes `zone_id` itself**.
-- Validation (same on both sides): `title` 1–80 chars · `description` ≤ 500 · `location_name` 1–120 · `address` ≤ 200, optional · `starts_at` after now · `ends_at` after `starts_at`, ≤ 12 h later · `lat`/`lng` inside the grid.
+- Validation (same on both sides): `title` 1–80 chars · `description` ≤ 500 · `location_name` 1–120 · `address` ≤ 200, optional · `starts_at` after now · `ends_at` after `starts_at`, ≤ 12 h later.
+- Coordinates are checked in this order:
+  1. **Field validation:** `lat` and `lng` are numbers, `lat > 0` and `lng < 0` → else `VALIDATION_FAILED` (wrong signs usually mean lat and lng were swapped).
+  2. **Grid check:** the point is inside the grid → else `OUTSIDE_GRID`.
+  The grid range is never a field-validation rule.
 
 ### Code window
 - `before`: now < `starts_at − 3h`

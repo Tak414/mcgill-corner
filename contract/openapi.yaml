@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: CodeJam 16 API
-  version: 0.2.1
+  version: 0.2.2
   description: |
     Single source of truth for every request and response shape between the frontend and the backend.
     Rules and the reasons behind them live in `api-contract.md` (same folder).
@@ -722,14 +722,22 @@ components:
         lat:
           type: number
           format: double
-          minimum: 45.44
-          maximum: 45.58
+          exclusiveMinimum: true
+          minimum: 0
+          description: |
+            Must be > 0 (else VALIDATION_FAILED: lat and lng were probably swapped).
+            Grid range 45.44–45.58 is NOT a field-validation rule: a valid number outside the grid
+            returns OUTSIDE_GRID from the server's grid check.
           example: 45.507
         lng:
           type: number
           format: double
-          minimum: -73.68
-          maximum: -73.5
+          exclusiveMaximum: true
+          maximum: 0
+          description: |
+            Must be < 0 (else VALIDATION_FAILED: Montreal longitude is always negative).
+            Grid range -73.68 to -73.50 is NOT a field-validation rule: a valid number outside the grid
+            returns OUTSIDE_GRID from the server's grid check.
           example: -73.579
         starts_at:
           type: string
