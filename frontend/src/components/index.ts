@@ -1,5 +1,6 @@
 export { AuthForm } from './AuthForm';
-export type { AuthFormProps } from './types';
+export { TopBar } from './TopBar';
+export type { AuthFormProps, TopBarProps } from './types';
 
 export type {
   Zones,

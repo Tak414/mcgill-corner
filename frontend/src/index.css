@@ -69,6 +69,15 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .auth-error { margin: 0; color: #a43d32; font-size: .86rem; }
 .button-spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.45); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.topbar { position: relative; z-index: 500; display: flex; min-height: 72px; align-items: center; justify-content: space-between; gap: 15px; padding: 12px 20px; border-bottom: 1px solid rgba(228,236,230,.9); background: rgba(255,254,250,.92); backdrop-filter: blur(18px); }
+.topbar-brand { display: flex; align-items: center; gap: 10px; font-size: .84rem; font-weight: 900; letter-spacing: .11em; }
+.topbar-logo { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 12px 12px 12px 4px; background: var(--unlock-accent); color: white; font-size: 1rem; letter-spacing: 0; }
+.topbar-stats { display: flex; align-items: center; gap: 9px; }
+.topbar-zones,.topbar-points { display: inline-flex; min-height: 34px; align-items: center; gap: 7px; padding: 0 11px; border-radius: 999px; background: #f2f6f3; color: #52645c; font-size: .75rem; font-weight: 750; white-space: nowrap; }
+.topbar-points { background: #fff3d9; color: #8b6320; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--unlock-accent); box-shadow: 0 0 0 3px #d9eee4; }
+.topbar-avatar { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border: 1px solid #cfdfd4; border-radius: 50%; background: #e5f1e9; color: var(--unlock-accent-dark); font-size: .74rem; font-weight: 850; }
+@media (max-width: 440px) { .topbar { padding: 10px 13px; } .topbar-brand { gap: 7px; font-size: .75rem; } .topbar-stats { gap: 5px; } .topbar-zones,.topbar-points { padding: 0 8px; font-size: .68rem; } }
 @media (max-width: 640px) {
   .ui-page { padding: 16px; }
   .gallery-shell { padding: 20px 12px 40px; }
