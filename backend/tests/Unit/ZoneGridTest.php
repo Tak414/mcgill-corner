@@ -31,6 +31,13 @@ class ZoneGridTest extends TestCase
         $this->assertNull((new ZoneGrid)->locate(45.60, -73.70));
     }
 
+    public function test_inner_boundary_coordinates_use_the_north_east_cell(): void
+    {
+        $this->assertSame(['id' => 55, 'row' => 5, 'col' => 5], (new ZoneGrid)->locate(45.51, -73.58));
+        $this->assertSame(['id' => 74, 'row' => 7, 'col' => 4], (new ZoneGrid)->locate(45.538, -73.60));
+        $this->assertSame(['id' => 11, 'row' => 1, 'col' => 1], (new ZoneGrid)->locate(45.454, -73.662));
+    }
+
     public function test_grid_contains_exactly_one_hundred_cells(): void
     {
         $this->assertCount(100, (new ZoneGrid)->cells());

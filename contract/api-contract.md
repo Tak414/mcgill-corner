@@ -1,4 +1,4 @@
-# API Contract v0.2.2 — CodeJam 16
+# API Contract v0.2.3 — CodeJam 16
 
 Frontend: React SPA (mobile web, Leaflet). Backend: Laravel JSON API (Sanctum tokens).
 The two sides share **only** the files in `/contract`:
@@ -9,6 +9,7 @@ The two sides share **only** the files in `/contract`:
 Any change → bump the version in **both** files, open a PR, and tell the whole team.
 
 **Changelog**
+- v0.2.3 — Zone math is done in integer micro-degrees, so points exactly on a boundary always land in the same zone on every platform (the float formula put lat 45.538 in row 6 instead of 7). Boundary golden points added.
 - v0.2.2 — Coordinate validation order clarified: wrong signs (lat ≤ 0 or lng ≥ 0) → `VALIDATION_FAILED`; valid signs but outside the grid → `OUTSIDE_GRID`. `openapi.yaml` no longer puts the grid range on the lat/lng fields.
 - v0.2.1 — Event location: map-tap fallback when address search fails; Nominatim parameters fixed; demo seed events use hard-coded coordinates. `openapi.yaml` added as the source of truth for shapes; `NOT_FOUND` error added for unknown event ids.
 - v0.2 — Confirmed rules (mutual code entry, 10×10 grid, points, code window).
@@ -35,9 +36,18 @@ Any change → bump the version in **both** files, open a PR, and tell the whole
 ### Zones (fixed grid)
 - Bounding box: south 45.44, west -73.68, north 45.58, east -73.50. **10 rows × 10 cols = 100 zones.**
 - Cell size: 0.014° lat × 0.018° lng (≈1.5 km).
-- `row = floor((lat - 45.44) / 0.014)`, `col = floor((lng + 73.68) / 0.018)`, both clamped to 0–9. Row 0 = south, col 0 = west.
-- `zone_id = row * 10 + col` (0–99).
-- Inside the grid if `45.44 ≤ lat ≤ 45.58` and `-73.68 ≤ lng ≤ -73.50`. Outside → `OUTSIDE_GRID`.
+- **All grid math uses integer micro-degrees (never floating-point division):**
+  ```
+  lat_u = round(lat * 1_000_000)          // integer
+  lng_u = round(lng * 1_000_000)          // integer
+  inside  = 45_440_000 <= lat_u <= 45_580_000  and  -73_680_000 <= lng_u <= -73_500_000
+  row     = min(9, intdiv(lat_u - 45_440_000, 14_000))
+  col     = min(9, intdiv(lng_u + 73_680_000, 18_000))
+  zone_id = row * 10 + col                // 0–99; row 0 = south, col 0 = west
+  ```
+  Outside the grid → `OUTSIDE_GRID`.
+- **Boundary rule:** a point exactly on an inner boundary belongs to the cell to its **north** (row) and **east** (col). Points on the outer north/east edge are clamped into row/col 9.
+- The same integer formula is used everywhere: the backend (authoritative), the frontend zone preview, and the seeder. Never compute zones from float division or by comparing against the float `bounds` in `GET /zones` (those are for drawing only).
 - Center zone = McGill = row 4, col 5 → **zone 45**.
 - `ring = max(|row - 4|, |col - 5|)`.
 - `required_count`: ring 0–1 → 1, ring 2 → 2, ring 3 → 3, ring 4 → 4, ring ≥5 → 5.
@@ -159,6 +169,9 @@ zone_progress  user_id, zone_id, exchange_count, unlocked_at(nullable)
 | 45.58, -73.50 (NE corner) | zone 99 (clamped), required 5 |
 | 45.60, -73.70 | `OUTSIDE_GRID` |
 | 45.5048, 73.5772 (positive lng) | `VALIDATION_FAILED` |
+| 45.51, -73.58 (on a row boundary) | zone 55 |
+| 45.538, -73.60 (on a row boundary; float math wrongly gives row 6) | zone 74 |
+| 45.454, -73.662 (on a row and a column boundary) | zone 11 |
 
 ## 7. Demo safety
 - **The demo must not depend on Nominatim.** Seeded events use hard-coded lat/lng.
