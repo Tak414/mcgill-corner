@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: CodeJam 16 API
-  version: 0.2.2
+  version: 0.2.3
   description: |
     Single source of truth for every request and response shape between the frontend and the backend.
     Rules and the reasons behind them live in `api-contract.md` (same folder).
