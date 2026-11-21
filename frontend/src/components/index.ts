@@ -6,7 +6,8 @@ export { CodeInput } from './CodeInput';
 export type { CodeInputProps } from './CodeInput';
 export { EventSheet } from './EventSheet';
 export { ExchangeResult } from './ExchangeResult';
-export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps } from './types';
+export { UnlockCelebration } from './UnlockCelebration';
+export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps } from './types';
 
 export type {
   Zones,
