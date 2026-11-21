@@ -17,6 +17,8 @@ class Profile extends Model
         'username',
         'bio',
         'university',
+        'program',
+        'year_of_study',
         'avatar_url',
         'friend_mode',
         'dating_mode',
@@ -28,6 +30,7 @@ class Profile extends Model
         return [
             'friend_mode' => 'boolean',
             'dating_mode' => 'boolean',
+            'year_of_study' => 'integer',
             'visibility_settings' => 'array',
         ];
     }
