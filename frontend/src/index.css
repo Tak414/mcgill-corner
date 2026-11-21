@@ -170,6 +170,11 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 @keyframes spark-twinkle { to { transform: scale(.78) rotate(25deg); opacity: .55; } }
 .unlock-bonus { display: flex; align-items: baseline; justify-content: center; gap: 7px; margin: 21px 0; color: #c2edcf; font-size: 1.9rem; font-weight: 900; }.unlock-bonus span { color: #b3ccc0; font-size: .8rem; font-weight: 650; }
 .unlock-message .ui-button { background: #eaf8ef; color: #155b43; }
+.toast-stack { position: absolute; z-index: 1000; top: 18px; right: 18px; display: grid; width: min(370px,calc(100% - 36px)); gap: 9px; pointer-events: none; }
+.toast-item { display: flex; min-height: 58px; align-items: center; gap: 11px; padding: 10px 12px; border: 1px solid #e5ece7; border-radius: 16px; background: rgba(255,254,250,.97); color: #36483f; box-shadow: 0 10px 30px rgba(28,48,39,.16); pointer-events: auto; animation: toast-in .22s ease-out; }
+@keyframes toast-in { from { transform: translateY(-7px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.toast-mark { display: grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; border-radius: 50%; background: #e4f3e9; color: var(--unlock-accent); font-weight: 900; }.toast-item.info .toast-mark { background: #edf2f5; color: #55708a; }.toast-item.error .toast-mark { background: #ffede7; color: #a84833; }
+.toast-message { flex: 1; font-size: .82rem; line-height: 1.35; }.toast-item button { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #718078; font-size: 1.3rem; }.toast-item button:hover { background: #f0f4f1; }
 @media (max-width: 640px) {
   .ui-page { padding: 16px; }
   .gallery-shell { padding: 20px 12px 40px; }
