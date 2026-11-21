@@ -1,7 +1,8 @@
 export { AuthForm } from './AuthForm';
 export { TopBar } from './TopBar';
 export { BottomTabs } from './BottomTabs';
-export type { AuthFormProps, TopBarProps, BottomTabsProps } from './types';
+export { FogMap } from './FogMap';
+export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps } from './types';
 
 export type {
   Zones,
