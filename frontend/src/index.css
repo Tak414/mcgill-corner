@@ -115,11 +115,12 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .code-entry::placeholder { color: #bdc9c2; }
 .code-submit { width: 58px; min-width: 58px; min-height: 58px; padding: 0; font-size: 1.4rem; }
 .sheet-backdrop { position: absolute; z-index: 600; inset: 0; display: flex; align-items: flex-end; justify-content: center; background: linear-gradient(180deg,rgba(15,37,31,.06),rgba(15,37,31,.24)); }
-.event-sheet { position: relative; width: min(100%,570px); max-height: min(88%,760px); overflow: hidden; border-radius: 26px 26px 0 0; background: var(--unlock-paper); box-shadow: 0 -18px 55px rgba(19,44,34,.22); animation: sheet-up .24s ease-out; }
+.event-sheet { position: relative; display: flex; flex-direction: column; width: min(100%,570px); max-height: min(88%,760px); overflow: hidden; border-radius: 26px 26px 0 0; background: var(--unlock-paper); box-shadow: 0 -18px 55px rgba(19,44,34,.22); animation: sheet-up .24s ease-out; }
 @keyframes sheet-up { from { transform: translateY(30px); opacity: .6; } to { transform: translateY(0); opacity: 1; } }
 .sheet-handle { position: absolute; z-index: 2; top: 10px; left: 50%; width: 38px; height: 4px; transform: translateX(-50%); border-radius: 4px; background: rgba(255,255,255,.8); }
 .sheet-close { position: absolute; z-index: 4; top: 17px; right: 17px; display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(255,255,255,.6); border-radius: 50%; background: rgba(255,254,250,.92); color: var(--unlock-ink); font-size: 1.45rem; box-shadow: 0 3px 14px rgba(28,45,38,.1); }
-.sheet-scroll { max-height: inherit; overflow-y: auto; overscroll-behavior: contain; }
+/* The sheet is a flex column so this area gets a definite height and scrolls; `max-height: inherit` resolved to none and clipped the code input. */
+.sheet-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .event-cover { position: relative; height: 145px; overflow: hidden; padding: 22px; background: radial-gradient(circle at 70% 10%,rgba(255,255,255,.55),transparent 29%), linear-gradient(135deg,#bddfd0,#dfefe4 55%,#f7ead3); }
 .event-cover::before,.event-cover::after { position: absolute; content: ''; width: 210px; height: 210px; border: 1px solid rgba(22,125,98,.24); border-radius: 50%; }
 .event-cover::before { top: 30px; left: 42%; }
