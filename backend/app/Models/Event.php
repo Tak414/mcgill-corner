@@ -2,50 +2,44 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $fillable = [
-        'organizer_id',
-        'neighborhood_id',
-        'title',
-        'description',
-        'location_name',
-        'location_point',
-        'starts_at',
-        'ends_at',
-        'status',
-        'visibility',
-        'capacity',
+        'host_id', 'title', 'description', 'location_name', 'address', 'lat', 'lng',
+        'zone_id', 'starts_at', 'ends_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'lat' => 'float',
+            'lng' => 'float',
+            'zone_id' => 'integer',
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
-            'capacity' => 'integer',
         ];
     }
 
-    public function organizer(): BelongsTo
+    public function host(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'organizer_id');
+        return $this->belongsTo(User::class, 'host_id');
     }
 
-    public function neighborhood(): BelongsTo
+    public function zone(): BelongsTo
     {
-        return $this->belongsTo(Neighborhood::class);
+        return $this->belongsTo(Zone::class);
     }
 
     public function rsvps(): HasMany
@@ -53,34 +47,28 @@ class Event extends Model
         return $this->hasMany(EventRsvp::class);
     }
 
-    public function attendees(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function exchanges(): HasMany
     {
-        return $this->belongsToMany(User::class, 'event_rsvps')
-            ->withPivot('status', 'responded_at')
-            ->withTimestamps();
+        return $this->hasMany(Exchange::class);
     }
 
-    public function scopeNear(Builder $query, float $longitude, float $latitude, float $radiusMeters = 5000): Builder
+    public function codeAvailableAt(): CarbonInterface
     {
-        if (DB::getDriverName() === 'pgsql') {
-            return $query->whereRaw(
-                'ST_DWithin(location_point, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)',
-                [$longitude, $latitude, $radiusMeters]
-            );
+        return $this->starts_at->copy()->subHours(3);
+    }
+
+    public function codeWindow(): string
+    {
+        if (config('app.demo_mode')) {
+            return 'open';
         }
 
-        $latitudeDegrees = $radiusMeters / 111320;
-        $longitudeDegrees = $radiusMeters / (111320 * max(0.01, cos(deg2rad($latitude))));
+        $now = now('UTC');
 
-        $west = number_format($longitude - $longitudeDegrees, 8, '.', '');
-        $east = number_format($longitude + $longitudeDegrees, 8, '.', '');
-        $south = number_format($latitude - $latitudeDegrees, 8, '.', '');
-        $north = number_format($latitude + $latitudeDegrees, 8, '.', '');
+        if ($now->lt($this->codeAvailableAt())) {
+            return 'before';
+        }
 
-        return $query->whereRaw(
-            "json_extract(location_point, \"$.coordinates[0]\") BETWEEN {$west} AND {$east}"
-        )->whereRaw(
-            "json_extract(location_point, \"$.coordinates[1]\") BETWEEN {$south} AND {$north}"
-        );
+        return $now->lte($this->ends_at) ? 'open' : 'closed';
     }
 }

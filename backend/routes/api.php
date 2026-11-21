@@ -1,26 +1,26 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\InterestController;
-use App\Http\Controllers\Api\V1\ProfileController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\AccountDataController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\EventRsvpController;
+use App\Http\Controllers\Api\ExchangeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-Route::prefix('v1')->name('api.v1.')->group(function (): void {
-    Route::post('/auth/register', [AuthController::class, 'register'])->name('auth.register');
-    Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login')->name('auth.login');
-    Route::get('/interests', [InterestController::class, 'index'])->name('interests.index');
-
-    Route::middleware('auth:sanctum')->group(function (): void {
-        Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
-        Route::get('/auth/me', [AuthController::class, 'me'])->name('auth.me');
-        Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-        Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::get('/profile/interests', [InterestController::class, 'selected'])->name('profile.interests.index');
-        Route::put('/profile/interests', [InterestController::class, 'update'])->name('profile.interests.update');
-    });
+Route::middleware('auth:sanctum')->group(function (): void {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/me', [AccountDataController::class, 'me'])->name('me');
+    Route::get('/me/exchanges', [AccountDataController::class, 'exchanges'])->name('me.exchanges');
+    Route::get('/zones', [AccountDataController::class, 'zones'])->name('zones.index');
+    Route::get('/leaderboard', [AccountDataController::class, 'leaderboard'])->name('leaderboard');
+    Route::get('/host/events', [AccountDataController::class, 'hostEvents'])->name('host.events');
+    Route::get('/events', [EventController::class, 'index'])->name('events.index');
+    Route::post('/events', [EventController::class, 'store'])->name('events.store');
+    Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
+    Route::post('/events/{event}/rsvp', [EventRsvpController::class, 'store'])->name('events.rsvp.store');
+    Route::delete('/events/{event}/rsvp', [EventRsvpController::class, 'destroy'])->name('events.rsvp.destroy');
+    Route::post('/events/{event}/exchange', [ExchangeController::class, 'store'])->name('events.exchange.store');
 });

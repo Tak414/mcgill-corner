@@ -7,14 +7,12 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'role', 'points'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -31,60 +29,32 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'points' => 'integer',
         ];
     }
 
-    public function profile(): HasOne
+    public function hostedEvents(): HasMany
     {
-        return $this->hasOne(Profile::class);
+        return $this->hasMany(Event::class, 'host_id');
     }
 
-    public function interests(): BelongsToMany
-    {
-        return $this->belongsToMany(Interest::class)->withTimestamps();
-    }
-
-    public function explorationProgress(): HasMany
-    {
-        return $this->hasMany(UserExplorationProgress::class);
-    }
-
-    public function organizedEvents(): HasMany
-    {
-        return $this->hasMany(Event::class, 'organizer_id');
-    }
-
-    public function eventRsvps(): HasMany
+    public function rsvps(): HasMany
     {
         return $this->hasMany(EventRsvp::class);
     }
 
-    public function rsvpEvents(): BelongsToMany
+    public function lowExchanges(): HasMany
     {
-        return $this->belongsToMany(Event::class, 'event_rsvps')
-            ->withPivot('status', 'responded_at')
-            ->withTimestamps();
+        return $this->hasMany(Exchange::class, 'user_low_id');
     }
 
-    public function achievements(): BelongsToMany
+    public function highExchanges(): HasMany
     {
-        return $this->belongsToMany(Achievement::class, 'user_achievements')
-            ->withPivot('earned_at')
-            ->withTimestamps();
+        return $this->hasMany(Exchange::class, 'user_high_id');
     }
 
-    public function achievementRecords(): HasMany
+    public function zoneProgress(): HasMany
     {
-        return $this->hasMany(UserAchievement::class);
-    }
-
-    public function xpTransactions(): HasMany
-    {
-        return $this->hasMany(XpTransaction::class);
-    }
-
-    public function xpBalance(): int
-    {
-        return (int) $this->xpTransactions()->sum('amount');
+        return $this->hasMany(ZoneProgress::class);
     }
 }

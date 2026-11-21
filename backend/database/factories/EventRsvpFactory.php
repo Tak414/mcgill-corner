@@ -7,18 +7,23 @@ use App\Models\EventRsvp;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/** @extends Factory<EventRsvp> */
+/**
+ * @extends Factory<EventRsvp>
+ */
 class EventRsvpFactory extends Factory
 {
-    protected $model = EventRsvp::class;
-
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
             'event_id' => Event::factory(),
-            'status' => fake()->randomElement(['going', 'interested', 'cancelled']),
-            'responded_at' => now(),
+            'user_id' => User::factory(),
+            'code' => null,
+            'created_at' => now(),
         ];
     }
 }

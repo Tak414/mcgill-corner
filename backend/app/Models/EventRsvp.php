@@ -12,22 +12,24 @@ class EventRsvp extends Model
     /** @use HasFactory<EventRsvpFactory> */
     use HasFactory;
 
-    protected $table = 'event_rsvps';
+    protected $table = 'rsvps';
 
-    protected $fillable = ['user_id', 'event_id', 'status', 'responded_at'];
+    public $timestamps = false;
+
+    protected $fillable = ['event_id', 'user_id', 'code'];
 
     protected function casts(): array
     {
-        return ['responded_at' => 'datetime'];
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
+        return ['created_at' => 'datetime'];
     }
 
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

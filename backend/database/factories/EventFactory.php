@@ -3,34 +3,33 @@
 namespace Database\Factories;
 
 use App\Models\Event;
-use App\Models\Neighborhood;
 use App\Models\User;
+use App\Models\Zone;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/** @extends Factory<Event> */
+/**
+ * @extends Factory<Event>
+ */
 class EventFactory extends Factory
 {
-    protected $model = Event::class;
-
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
     public function definition(): array
     {
-        $startsAt = fake()->dateTimeBetween('+1 day', '+1 month');
-
         return [
-            'organizer_id' => User::factory(),
-            'neighborhood_id' => Neighborhood::factory(),
-            'title' => fake()->sentence(4),
-            'description' => fake()->paragraph(),
-            'location_name' => 'McGill campus',
-            'location_point' => json_encode([
-                'type' => 'Point',
-                'coordinates' => [-73.5772, 45.5048],
-            ]),
-            'starts_at' => $startsAt,
-            'ends_at' => (clone $startsAt)->modify('+2 hours'),
-            'status' => 'published',
-            'visibility' => 'university',
-            'capacity' => fake()->numberBetween(10, 80),
+            'host_id' => User::factory()->host(),
+            'title' => fake()->sentence(3),
+            'description' => fake()->sentence(),
+            'location_name' => fake()->company(),
+            'address' => null,
+            'lat' => 45.5048,
+            'lng' => -73.5772,
+            'zone_id' => Zone::factory(),
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addHours(2),
         ];
     }
 }
