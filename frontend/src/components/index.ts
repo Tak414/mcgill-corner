@@ -9,7 +9,8 @@ export { ExchangeResult } from './ExchangeResult';
 export { UnlockCelebration } from './UnlockCelebration';
 export { ToastStack } from './ToastStack';
 export { Leaderboard } from './Leaderboard';
-export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps } from './types';
+export { HostEventList } from './HostEventList';
+export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps, HostEventListProps } from './types';
 
 export type {
   Zones,
