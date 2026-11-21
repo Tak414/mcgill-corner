@@ -1,0 +1,116 @@
+import type { components } from '../api/schema';
+type S = components['schemas'];
+
+
+export type Zones = S['Zones'];
+export type ZoneProgress = S['ZoneProgress'];
+export type EventSummary = S['EventSummary'];
+export type EventDetail = S['EventDetail'];
+export type EventCreateRequest = S['EventCreateRequest'];
+export type HostEventSummary = S['HostEventSummary'];
+export type LeaderboardEntry = S['LeaderboardEntry'];
+export type ZoneResult = S['ZoneResult'];
+export type PersonRef = S['PersonRef'];
+export type Role = S['Role'];
+export type LatLng = { lat: number; lng: number };
+export type FieldErrors = Record<string, string[]>;
+
+
+export type AuthFormProps = {
+  mode: 'login' | 'register';
+  isSubmitting: boolean;
+  errorMessage: string | null;
+  fieldErrors: FieldErrors;
+  onSubmit: (values: { name?: string; email: string; password: string; role?: Role }) => void;
+  onSwitchMode: () => void;
+};
+
+
+export type TopBarProps = { name: string; points: number; unlockedCount: number };
+
+
+export type BottomTabsProps = {
+  active: 'map' | 'leaderboard';
+  onChange: (tab: 'map' | 'leaderboard') => void;
+};
+
+
+export type FogMapProps = {
+  zones: Zones;
+  /* unlocked zones have unlocked = true */
+  zoneProgress: ZoneProgress[];
+  events: EventSummary[];
+  selectedEventId: number | null;
+  onPinClick: (eventId: number) => void;
+};
+
+
+export type EventSheetProps = {
+  event: EventDetail;
+  /* hosts see details only, no buttons */
+  viewerRole: Role;
+  isSubmitting: boolean;
+  errorMessage: string | null;
+  onRsvp: () => void;
+  onCancelRsvp: () => void;
+  /* exactly 4 digits */
+  onSubmitCode: (code: string) => void;
+  onClose: () => void;
+};
+
+
+export type ExchangeResultProps =
+  | { status: 'pending'; partnerName: string; onClose: () => void }
+  | {
+      status: 'completed';
+      partnerName: string;
+      pointsGained: number;
+      zone: ZoneResult;
+      totalPoints: number;
+      onClose: () => void;
+    };
+
+
+export type UnlockCelebrationProps = { zoneId: number; bonusPoints: number; onDone: () => void };
+
+
+export type ToastItem = { id: string; message: string; variant: 'success' | 'info' | 'error' };
+
+
+export type ToastStackProps = { toasts: ToastItem[]; onDismiss: (id: string) => void };
+
+
+export type LeaderboardProps = { top: LeaderboardEntry[]; me: LeaderboardEntry | null };
+
+
+export type HostEventListProps = {
+  events: HostEventSummary[];
+  onCreate: () => void;
+  onSelect: (eventId: number) => void;
+};
+
+
+export type LocationPickerProps = {
+  value: LatLng | null;
+  /* called on map tap or pin drag */
+  onChange: (value: LatLng) => void;
+  /* the teammate calls the geocoder */
+  onSearch: (query: string) => void;
+  isSearching: boolean;
+  searchError: string | null;
+  zonePreview:
+    | { kind: 'inside'; zoneId: number; requiredCount: number }
+    | { kind: 'outside' }
+    | null;
+};
+
+
+export type EventFormProps = {
+  isSubmitting: boolean;
+  errorMessage: string | null;
+  fieldErrors: FieldErrors;
+  /* EventForm renders <LocationPicker {...location} /> */
+  location: LocationPickerProps;
+  onSubmit: (values: Omit<EventCreateRequest, 'lat' | 'lng'>) => void;
+  onCancel: () => void;
+};
