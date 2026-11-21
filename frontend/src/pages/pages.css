@@ -1,0 +1,4 @@
+/* Page-level layout only (owned by integration). Component styles live in index.css. */
+.page-center { display: grid; min-height: 100vh; place-items: center; padding: 24px 16px; }
+.auth-page { background: radial-gradient(ellipse at 12% 4%, #dceee6 0, transparent 35%), #f1f5f2; }
+.auth-page .auth-card { width: min(100%, 440px); }
