@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -49,5 +50,25 @@ class Event extends Model
     public function exchanges(): HasMany
     {
         return $this->hasMany(Exchange::class);
+    }
+
+    public function codeAvailableAt(): CarbonInterface
+    {
+        return $this->starts_at->copy()->subHours(3);
+    }
+
+    public function codeWindow(): string
+    {
+        if (config('app.demo_mode')) {
+            return 'open';
+        }
+
+        $now = now('UTC');
+
+        if ($now->lt($this->codeAvailableAt())) {
+            return 'before';
+        }
+
+        return $now->lte($this->ends_at) ? 'open' : 'closed';
     }
 }
