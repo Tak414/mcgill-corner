@@ -39,7 +39,7 @@ class DemoSeeder extends Seeder
         $eventSpecs = [
             ['Board Games at McGill', 45.5048, -73.5772, 0, -1, 2],
             ['Coffee and Conversation', 45.5000, -73.5600, 1, -1, 2],
-            ['Campus Walk', 45.5100, -73.5800, 0, 4, 6],
+            ['Campus Walk', 45.5110, -73.5800, 0, 4, 6],
             ['Puzzle Night', 45.5180, -73.5940, 1, 5, 7],
             ['Study Break Meetup', 45.5200, -73.5600, 0, 25, 27],
             ['Outdoor Chess', 45.4900, -73.5800, 1, 26, 28],
