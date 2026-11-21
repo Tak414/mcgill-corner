@@ -5,7 +5,8 @@ export { FogMap } from './FogMap';
 export { CodeInput } from './CodeInput';
 export type { CodeInputProps } from './CodeInput';
 export { EventSheet } from './EventSheet';
-export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps } from './types';
+export { ExchangeResult } from './ExchangeResult';
+export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps } from './types';
 
 export type {
   Zones,
