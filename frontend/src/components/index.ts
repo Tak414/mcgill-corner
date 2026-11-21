@@ -11,7 +11,8 @@ export { ToastStack } from './ToastStack';
 export { Leaderboard } from './Leaderboard';
 export { HostEventList } from './HostEventList';
 export { LocationPicker } from './LocationPicker';
-export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps, HostEventListProps, LocationPickerProps } from './types';
+export { EventForm } from './EventForm';
+export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps, HostEventListProps, LocationPickerProps, EventFormProps } from './types';
 
 export type {
   Zones,
