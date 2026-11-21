@@ -20,17 +20,39 @@ final class ZoneGrid
 
     public const LONGITUDE_STEP = 0.018;
 
+    private const LATITUDE_SCALE = 1_000_000;
+
+    private const SOUTH_MICRODEGREES = 45_440_000;
+
+    private const NORTH_MICRODEGREES = 45_580_000;
+
+    private const WEST_MICRODEGREES = -73_680_000;
+
+    private const EAST_MICRODEGREES = -73_500_000;
+
+    private const LATITUDE_CELL_MICRODEGREES = 14_000;
+
+    private const LONGITUDE_CELL_MICRODEGREES = 18_000;
+
     /**
      * @return array{id: int, row: int, col: int}|null
      */
     public function locate(float $lat, float $lng): ?array
     {
-        if ($lat < self::SOUTH || $lat > self::NORTH || $lng < self::WEST || $lng > self::EAST) {
+        $latMicrodegrees = (int) round($lat * self::LATITUDE_SCALE);
+        $lngMicrodegrees = (int) round($lng * self::LATITUDE_SCALE);
+
+        $inside = $latMicrodegrees >= self::SOUTH_MICRODEGREES
+            && $latMicrodegrees <= self::NORTH_MICRODEGREES
+            && $lngMicrodegrees >= self::WEST_MICRODEGREES
+            && $lngMicrodegrees <= self::EAST_MICRODEGREES;
+
+        if (! $inside) {
             return null;
         }
 
-        $row = min(self::ROWS - 1, max(0, (int) floor(($lat - self::SOUTH) / self::LATITUDE_STEP)));
-        $col = min(self::COLS - 1, max(0, (int) floor(($lng - self::WEST) / self::LONGITUDE_STEP)));
+        $row = min(self::ROWS - 1, intdiv($latMicrodegrees - self::SOUTH_MICRODEGREES, self::LATITUDE_CELL_MICRODEGREES));
+        $col = min(self::COLS - 1, intdiv($lngMicrodegrees - self::WEST_MICRODEGREES, self::LONGITUDE_CELL_MICRODEGREES));
 
         return ['id' => $row * self::COLS + $col, 'row' => $row, 'col' => $col];
     }
