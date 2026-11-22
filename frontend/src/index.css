@@ -225,7 +225,7 @@ button.topbar-avatar:focus-visible { outline: 3px solid rgba(22,125,98,.35); out
 @media (max-width: 400px) { .location-search { align-items: stretch; flex-direction: column; }.location-search .ui-button { width: 100%; } }
 .event-form { width: min(100%,720px); margin: 16px auto; padding: clamp(18px,4vw,30px); }
 .event-form-head { display: flex; align-items: center; gap: 13px; padding-bottom: 19px; border-bottom: 1px solid var(--unlock-line); }.form-back { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border: 1px solid var(--unlock-line); border-radius: 14px; background: white; color: #45584e; font-size: 1.3rem; }.event-form-head .ui-kicker { margin: 0 0 3px; }.event-form-head h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.035em; }
-.event-form-fields { display: grid; gap: 17px; padding: 20px 0; }.event-form-fields > label,.event-form-fields > div,.event-time-fields label { display: grid; gap: 2px; }.event-form-fields .ui-label small { color: #8a9790; font-weight: 500; }.event-description { min-height: 90px; resize: vertical; }.event-time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }.event-time-fields input { padding-right: 8px; font-size: .82rem; }
+.event-form-fields { display: grid; gap: 17px; padding: 20px 0; }.event-form-fields > label,.event-form-fields > div,.event-time-fields label { display: grid; gap: 2px; }.event-form-fields .ui-label small { color: #8a9790; font-weight: 500; }.event-description { min-height: 90px; resize: vertical; }.event-time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }.event-time-fields input { padding-right: 8px; font-size: .82rem; }
 .event-form-actions { display: flex; justify-content: flex-end; gap: 9px; padding-top: 16px; border-top: 1px solid var(--unlock-line); }.event-form-actions .ui-button { min-width: 130px; }.event-form-error { margin: 0 0 12px; color: #a43d32; font-size: .84rem; }
 @media (max-width: 440px) { .event-form-actions { flex-direction: column-reverse; }.event-form-actions .ui-button { width: 100%; } }
 @media (max-width: 640px) {
@@ -239,3 +239,4 @@ button.topbar-avatar:focus-visible { outline: 3px solid rgba(22,125,98,.35); out
   .map-demo-phone > .topbar { border-radius: 23px 23px 0 0; }
   .gallery-footer { padding: 0 3px; }
 }
+.event-time-fields label { align-content: start; } /* keep Starts/Ends inputs level when only one shows an error */
