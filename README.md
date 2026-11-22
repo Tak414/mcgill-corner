@@ -106,3 +106,7 @@ Then point the frontend at `VITE_API_URL=http://localhost:4010`. Responses follo
 ## Built with
 
 Laravel · Sanctum · React · Vite · TypeScript · Leaflet · OpenStreetMap · Nominatim · TanStack Query · Tailwind
+
+## Deployment
+
+The frontend is deployed with Vercel and the backend is deployed with Laravel Cloud.
