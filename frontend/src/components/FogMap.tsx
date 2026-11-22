@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { divIcon, type DivIcon } from 'leaflet';
-import { MapContainer, Marker, Pane, Popup, Rectangle, TileLayer, useMapEvents, ZoomControl } from 'react-leaflet';
-import { formatStart } from './time';
+import { useEffect, useState } from 'react';
+import { divIcon, latLngBounds, type DivIcon, type LatLngExpression } from 'leaflet';
+import { MapContainer, Marker, Pane, Polygon, Rectangle, TileLayer, useMap, useMapEvents, ZoomControl } from 'react-leaflet';
 import type { FogMapProps, EventSummary, ZoneProgress, Zones } from './types';
 
 const mcgill: [number, number] = [45.5048, -73.5772];
@@ -14,6 +13,29 @@ function eventIcon(event: EventSummary, selected: boolean) {
     iconSize: [42, 42],
     iconAnchor: [21, 21],
   });
+}
+
+const WORLD_RING: LatLngExpression[] = [[-85, -180], [85, -180], [85, 180], [-85, 180]];
+
+/**
+ * Shows only the playable grid: an opaque mask with a grid-shaped hole hides the map outside it,
+ * panning is held to the grid, and you can't zoom out further than the whole grid on screen.
+ */
+function GridOnly({ bounds }: { bounds: Zones['bounds'] }) {
+  const map = useMap();
+  useEffect(() => {
+    const grid = latLngBounds([bounds.south, bounds.west], [bounds.north, bounds.east]);
+    const fitMinZoom = () => map.setMinZoom(map.getBoundsZoom(grid, false));
+    map.setMaxBounds(grid.pad(0.02));
+    fitMinZoom();
+    map.on('resize', fitMinZoom);
+    return () => {
+      map.off('resize', fitMinZoom);
+    };
+  }, [map, bounds.south, bounds.west, bounds.north, bounds.east]);
+
+  const hole: LatLngExpression[] = [[bounds.south, bounds.west], [bounds.north, bounds.west], [bounds.north, bounds.east], [bounds.south, bounds.east]];
+  return <Polygon positions={[WORLD_RING, hole]} interactive={false} pathOptions={{ stroke: false, fillColor: '#e9efeb', fillOpacity: 1 }} />;
 }
 
 /* Below this zoom a cell is too small on a phone for two lines of text. */
@@ -63,11 +85,12 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
 
   return (
     <div className="fog-map-wrap">
-      <MapContainer className="fog-map" center={mcgill} zoom={12} zoomControl={false} scrollWheelZoom aria-label="Map of McGill and nearby event zones">
+      <MapContainer className="fog-map" center={mcgill} zoom={12} zoomControl={false} maxBoundsViscosity={1} scrollWheelZoom aria-label="Map of McGill and nearby event zones">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <GridOnly bounds={zones.bounds} />
         {/* top-left is taken by the progress card */}
         <ZoomControl position="bottomright" />
         {zones.cells.map((cell) => {
@@ -95,11 +118,7 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
             icon={eventIcon(event, event.id === selectedEventId)}
             title={event.title}
             eventHandlers={{ click: () => onPinClick(event.id) }}
-          >
-            <Popup>
-              <div className="map-popup"><strong>{event.title}</strong><span>{event.location_name}</span><span>{formatStart(event.starts_at)}</span><small>{event.going_count} going</small></div>
-            </Popup>
-          </Marker>
+          />
         ))}
       </MapContainer>
       <div className="map-progress-card">
