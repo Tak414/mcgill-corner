@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as api from '../api';
 import { queryKeys } from './queryKeys';
 
@@ -15,6 +16,12 @@ export function useEvents() {
 /** Points and zone progress, every 15 s. */
 export function useMe() {
   return useQuery({ queryKey: queryKeys.me, queryFn: api.getMe, refetchInterval: 15_000 });
+}
+
+/** Fetch /me right now (fresh points and zone progress) and update the cached copy. */
+export function useFetchMeNow() {
+  const qc = useQueryClient();
+  return useCallback(() => qc.fetchQuery({ queryKey: queryKeys.me, queryFn: api.getMe, staleTime: 0 }), [qc]);
 }
 
 /** Detail sheet, every 5 s while it is open (pass null when closed). */

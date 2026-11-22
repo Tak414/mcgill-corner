@@ -78,7 +78,10 @@ export type ExchangeResultProps =
   | {
       status: 'completed';
       partnerName: string;
+      /** Everything this exchange earned, zone bonus included (the server's points_gained). */
       pointsGained: number;
+      /** The part of pointsGained that is the zone-unlock bonus; 0 when no zone opened. */
+      bonusPoints: number;
       zone: ZoneResult;
       totalPoints: number;
       onClose: () => void;

@@ -69,7 +69,7 @@ export function Gallery() {
     { id: 'event-cannot-cancel', label: 'EventSheet · cancel locked, people met', render: () => <EventSheet event={eventCannotCancel} viewerRole="attendee" isSubmitting={false} errorMessage={null} onRsvp={noOp} onCancelRsvp={noOp} onSubmitCode={noOp} onClose={noOp} /> },
     { id: 'event-error', label: 'EventSheet · submitting and error', render: () => <EventSheet event={eventGoingOpen} viewerRole="attendee" isSubmitting errorMessage="That code belongs to someone else at this event." onRsvp={noOp} onCancelRsvp={noOp} onSubmitCode={noOp} onClose={noOp} /> },
     { id: 'result-pending', label: 'ExchangeResult · pending', render: () => <ExchangeResult status="pending" partnerName="Ana" onClose={noOp} /> },
-    { id: 'result-complete', label: 'ExchangeResult · complete', render: () => <ExchangeResult status="completed" partnerName="Léa" pointsGained={300} zone={resultZone} totalPoints={2900} onClose={noOp} /> },
+    { id: 'result-complete', label: 'ExchangeResult · complete', render: () => <ExchangeResult status="completed" partnerName="Léa" pointsGained={300} bonusPoints={200} zone={resultZone} totalPoints={2900} onClose={noOp} /> },
     { id: 'unlock', label: 'UnlockCelebration', render: () => <UnlockCelebration zoneId={45} bonusPoints={200} onDone={() => setScene('map')} /> },
     { id: 'toasts', label: 'ToastStack · all variants', render: () => <ToastStack toasts={shownToasts} onDismiss={(id) => setShownToasts((current) => current.filter((toast) => toast.id !== id))} /> },
     { id: 'leaderboard-top', label: 'Leaderboard · tied ranks, me in top 20', render: () => <Leaderboard top={top} me={meInTop} /> },

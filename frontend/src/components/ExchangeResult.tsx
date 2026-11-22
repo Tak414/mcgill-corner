@@ -11,9 +11,9 @@ export function ExchangeResult(props: ExchangeResultProps) {
         <p className="ui-kicker">{complete ? 'A new connection' : 'Almost there'}</p>
         <h2 id="result-title">{complete ? `You met ${props.partnerName}!` : `Waiting for ${props.partnerName}`}</h2>
         {complete ? <>
-          <div className="result-points">+{props.pointsGained}<span>points</span></div>
+          <div className="result-points">+{props.pointsGained - props.bonusPoints}<span>points for meeting</span></div>
           <div className="result-zone"><div><span><ZoneLabel zoneId={props.zone.zone_id} /></span><strong>{props.zone.exchange_count}/{props.zone.required_count} meetups</strong></div><div className="result-progress"><span style={{ width: `${Math.min(100, (props.zone.exchange_count / props.zone.required_count) * 100)}%` }} /></div></div>
-          {props.zone.unlocked_now && <p className="result-unlocked"><span aria-hidden="true">✧</span> You cleared the fog in this zone</p>}
+          {props.zone.unlocked_now && <p className="result-unlocked"><span aria-hidden="true">✧</span> You cleared the fog in this zone{props.bonusPoints > 0 && <strong className="result-bonus">+{props.bonusPoints} bonus</strong>}</p>}
           <p className="result-total">Your new balance <strong>{props.totalPoints.toLocaleString()} pts</strong></p>
         </> : <>
           <p className="result-copy">You shared codes with {props.partnerName}. Once they enter yours, you’ll both unlock a little more of Montreal.</p>

@@ -409,3 +409,6 @@ button.topbar-avatar:focus-visible { outline: 3px solid rgba(22,125,98,.35); out
 /* "McGill / Downtown (Zone 45)": the number stays small and quiet next to the name. */
 .zone-num { font-size: .78em; font-weight: 600; letter-spacing: 0; opacity: .72; white-space: nowrap; }
 .event-cover-zone .zone-name, .host-event-zone .zone-name { letter-spacing: .03em; }
+
+/* "+200 bonus" next to "You cleared the fog in this zone" on the result card. */
+.result-bonus { margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: #fff2d7; color: #9f711b; font-size: .75rem; font-weight: 850; }
