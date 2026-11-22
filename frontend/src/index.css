@@ -240,3 +240,7 @@ button.topbar-avatar:focus-visible { outline: 3px solid rgba(22,125,98,.35); out
   .gallery-footer { padding: 0 3px; }
 }
 .event-time-fields label { align-content: start; } /* keep Starts/Ends inputs level when only one shows an error */
+
+/* "McGill / Downtown (Zone 45)": the number stays small and quiet next to the name. */
+.zone-num { font-size: .78em; font-weight: 600; letter-spacing: 0; opacity: .72; white-space: nowrap; }
+.event-cover-zone .zone-name, .host-event-zone .zone-name { letter-spacing: .03em; }

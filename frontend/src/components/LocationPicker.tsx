@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { divIcon, type Marker as LeafletMarker } from 'leaflet';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
+import { ZoneLabel } from './ZoneLabel';
 import type { LatLng, LocationPickerProps } from './types';
 
 const center: LatLng = { lat: 45.5048, lng: -73.5772 };
@@ -82,7 +83,7 @@ export function LocationPicker({ value, onChange, onSearch, isSearching, searchE
         </MapContainer>
         <span className="location-map-hint">Tap map to drop a pin · drag to adjust</span>
       </div>
-      {zonePreview && <div className={`zone-preview ${zonePreview.kind}`} aria-live="polite">{zonePreview.kind === 'inside' ? <><span className="preview-dot" />Zone {zonePreview.zoneId} · needs {zonePreview.requiredCount} {zonePreview.requiredCount === 1 ? 'meetup' : 'meetups'}</> : <><span className="preview-warning">!</span>Outside the map — pick a spot inside the grid</>}</div>}
+      {zonePreview && <div className={`zone-preview ${zonePreview.kind}`} aria-live="polite">{zonePreview.kind === 'inside' ? <><span className="preview-dot" /><span><ZoneLabel zoneId={zonePreview.zoneId} /> · needs {zonePreview.requiredCount} {zonePreview.requiredCount === 1 ? 'meetup' : 'meetups'}</span></> : <><span className="preview-warning">!</span>Outside the map — pick a spot inside the grid</>}</div>}
     </section>
   );
 }
