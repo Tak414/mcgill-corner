@@ -12,7 +12,7 @@ export type FeedbackKind = 'pending' | 'meet' | 'unlock' | 'reveal' | 'open' | '
 
 /* [frequency Hz, start offset s, duration s] */
 const TONES: Record<FeedbackKind, Array<[number, number, number]>> = {
-  pending: [[659.25, 0, 0.12]],
+  pending: [[659.25, 0, 0.16], [783.99, 0.12, 0.22]],
   meet: [[523.25, 0, 0.18], [659.25, 0.09, 0.22], [783.99, 0.18, 0.38]],
   unlock: [[523.25, 0, 0.2], [659.25, 0.11, 0.2], [783.99, 0.22, 0.22], [1046.5, 0.34, 0.65]],
   // C major pentatonic, rising over ~2.4 s, quiet: the fog "lifting".
@@ -35,17 +35,30 @@ const VIBRATION: Record<FeedbackKind, number | number[]> = {
   tap: 8,
   rankup: [15, 30, 15, 30, 70],
 };
-const VOLUME: Record<FeedbackKind, number> = { pending: 0.12, meet: 0.16, unlock: 0.16, reveal: 0.07, open: 0.11, tap: 0, rankup: 0.14 };
+const VOLUME: Record<FeedbackKind, number> = { pending: 0.28, meet: 0.36, unlock: 0.36, reveal: 0.2, open: 0.3, tap: 0, rankup: 0.34 };
 
 let context: AudioContext | null = null;
+let output: AudioNode | null = null;
 
 function audio(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctor) return null;
-  context ??= new Ctor();
+  if (!context) {
+    context = new Ctor();
+    // Every tone goes through one compressor, so louder chords never clip.
+    const compressor = context.createDynamicsCompressor();
+    compressor.threshold.value = -14;
+    compressor.ratio.value = 4;
+    compressor.connect(context.destination);
+    output = compressor;
+  }
   return context;
 }
+
+/* Events that count as a user gesture in Chrome and Safari (a touch only counts when the finger lifts). */
+export const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'] as const;
+let unlocked = false;
 
 /**
  * Browsers only allow sound after the user has tapped something. Call this from a tap/key
@@ -56,6 +69,14 @@ export function primeFeedback(event?: Event): void {
   try {
     const c = audio();
     if (c && c.state !== 'running') void c.resume();
+    // iPhone/Safari also needs something to start inside the gesture: one silent sample.
+    if (c && !unlocked) {
+      const silent = c.createBufferSource();
+      silent.buffer = c.createBuffer(1, 1, 22050);
+      silent.connect(c.destination);
+      silent.start(0);
+      unlocked = c.state === 'running';
+    }
   } catch {
     // no audio
   }
@@ -66,16 +87,21 @@ export function primeFeedback(event?: Event): void {
 }
 
 function tone(c: AudioContext, frequency: number, start: number, duration: number, volume: number) {
-  const osc = c.createOscillator();
   const gain = c.createGain();
-  osc.type = 'sine';
-  osc.frequency.value = frequency;
   gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(volume, start + 0.015);
+  gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
   gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  osc.connect(gain).connect(c.destination);
-  osc.start(start);
-  osc.stop(start + duration + 0.05);
+  gain.connect(output ?? c.destination);
+  for (const [type, multiple, level] of [['sine', 1, 1], ['triangle', 2, 0.35]] as const) {
+    const osc = c.createOscillator();
+    const voice = c.createGain();
+    osc.type = type;
+    osc.frequency.value = frequency * multiple;
+    voice.gain.value = level;
+    osc.connect(voice).connect(gain);
+    osc.start(start);
+    osc.stop(start + duration + 0.05);
+  }
 }
 
 function playTones(kind: FeedbackKind) {
@@ -102,4 +128,12 @@ export function feedback(kind: FeedbackKind): void {
   } catch {
     // no vibration
   }
+}
+
+// Local dev only: run unlockSound('meet') in the DevTools console to hear a sound right away.
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  (window as unknown as { unlockSound: (kind?: FeedbackKind) => void }).unlockSound = (kind: FeedbackKind = 'unlock') => {
+    primeFeedback();
+    feedback(kind);
+  };
 }
