@@ -91,17 +91,61 @@ Then point the frontend at `VITE_API_URL=http://localhost:4010`. Responses follo
 
 ## Demo accounts
 
-| Role | Email | Password |
-|---|---|---|
-| Host | _[fill in after seeding]_ | |
-| Attendee | _[fill in after seeding]_ | |
+Live app: https://mcgill-corner.vercel.app. Seed with `php artisan migrate:fresh --seed` (production: add `--force`).
 
-## Team
+**Start here:** log in as `attendee1` and `attendee2` on two phones, RSVP to an open event, and enter each other's codes. Pollack Concert Hall (zone 45) or Upstairs Jazz Bar (zone 35) is the best choice: neither account has opened that zone yet, so each earns +300 (100 for meeting + 200 zone bonus), the fog clears, and both climb the leaderboard (attendee1 #9 → #6, attendee2 #10 → #7).
 
-- _[Name]_ — _[role]_
-- _[Name]_ — _[role]_
-- _[Name]_ — _[role]_
-- _[Name]_ — _[role]_
+| Role | Email | Password | Start |
+|---|---|---|---|
+| Host | `host1@unlock.test` | `host12345` | Hosts all 6 demo events |
+| Host | `host2@unlock.test` | `host12345` | No events yet |
+| Attendee | `attendee1@unlock.test` (Alex Chen) | `unlock123` | #9 · 400 pts · 1 zone open |
+| Attendee | `attendee2@unlock.test` (Maya Singh) | `unlock123` | #10 · 300 pts · 1 zone open |
+
+### Explorers
+
+Every explorer's password is `unlock123`. Ranks are the starting ranks; tied points share a rank.
+
+| Rank | Name | Email | Points | Zones open |
+|---|---|---|---|---|
+| 1 | Sophie Tremblay | `sophie.tremblay@unlock.test` | 1,300 | 3 |
+| 2 | Daniel Okafor | `daniel.okafor@unlock.test` | 1,100 | 3 |
+| 3 | Priya Raman | `priya.raman@unlock.test` | 1,000 | 3 |
+| 4 | Lucas Gagnon | `lucas.gagnon@unlock.test` | 900 | 3 |
+| 5 | Mei Lin | `mei.lin@unlock.test` | 800 | 2 |
+| 6 | Omar Haddad | `omar.haddad@unlock.test` | 500 | 1 |
+| 6 | Chloé Bouchard | `chloe.bouchard@unlock.test` | 500 | 1 |
+| 6 | Ethan Wright | `ethan.wright@unlock.test` | 500 | 1 |
+| 10 | Gabriel Roy | `gabriel.roy@unlock.test` | 300 | 1 |
+| 10 | Aisha Mohamed | `aisha.mohamed@unlock.test` | 300 | 1 |
+| 13 | Julien Lefebvre | `julien.lefebvre@unlock.test` | 200 | 0 |
+| 13 | Hana Kim | `hana.kim@unlock.test` | 200 | 0 |
+| 13 | Mateo Garcia | `mateo.garcia@unlock.test` | 200 | 0 |
+| 13 | Amélie Côté | `amelie.cote@unlock.test` | 200 | 0 |
+| 13 | Ravi Patel | `ravi.patel@unlock.test` | 200 | 0 |
+| 18 | Nora Lindqvist | `nora.lindqvist@unlock.test` | 100 | 0 |
+| 18 | Samuel Nguyen | `samuel.nguyen@unlock.test` | 100 | 0 |
+| 18 | Inès Benali | `ines.benali@unlock.test` | 100 | 0 |
+| 18 | Liam O'Connor | `liam.oconnor@unlock.test` | 100 | 0 |
+| 18 | Zoé Morin | `zoe.morin@unlock.test` | 100 | 0 |
+
+Ranks 9 and 10 are attendee1 and attendee2 (above). Points follow the game's rules: +100 per completed exchange, plus the zone's bonus when it opens.
+
+### Demo events
+
+Real McGill events at their real venues. Times are set relative to the moment of seeding: the first three are open for code exchange right away, the rest start later the same day.
+
+| Event | Venue | Zone | When (from seeding) |
+|---|---|---|---|
+| Grand Chœur de McGill et Chœur universitaire de McGill | Pollack Concert Hall, 555 Sherbrooke St W | 45 | Started 30 min ago, 2 h |
+| McGill Jazz Combos | Upstairs Jazz Bar & Grill, 1254 Rue Mackay | 35 | Started 1 h ago, 3 h |
+| McGill Infant Mental Health Day (CA$90) | MUHC Glen Site, 1001 Bd Décarie | 24 | Started 2 h ago, 7 h |
+| Noël jazzé - Rémi Bolduc | Maison de la culture NDG – Botrel, 3755 Rue Botrel | 23 | In 5 h, 2 h |
+| Basketball - MCGILL @ UQAM | UQAM Sports Center, 1212 Rue Sanguinet | 56 | In 6 h, 2 h |
+| McGill University vs Université de Montréal | McConnell Arena, 3883 Rue University | 55 | In 8 h, 2.5 h |
+
+With `DEMO_MODE=true` (as in production), every event's code window is open.
+
 
 ## Built with
 
