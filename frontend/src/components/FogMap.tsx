@@ -1,5 +1,6 @@
 import { divIcon } from 'leaflet';
 import { MapContainer, Marker, Popup, Rectangle, TileLayer, Tooltip, ZoomControl } from 'react-leaflet';
+import { formatStart } from './time';
 import type { FogMapProps, EventSummary } from './types';
 
 const mcgill: [number, number] = [45.5048, -73.5772];
@@ -55,7 +56,7 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
             eventHandlers={{ click: () => onPinClick(event.id) }}
           >
             <Popup>
-              <div className="map-popup"><strong>{event.title}</strong><span>{event.location_name}</span><small>{event.going_count} going</small></div>
+              <div className="map-popup"><strong>{event.title}</strong><span>{event.location_name}</span><span>{formatStart(event.starts_at)}</span><small>{event.going_count} going</small></div>
             </Popup>
           </Marker>
         ))}
