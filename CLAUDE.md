@@ -13,6 +13,7 @@ Hackathon: CodeJam 16, McGill. **No edits after Sunday 12:00 (Montreal time).** 
 - Backend: PHP + Laravel JSON API under `/api`, Sanctum bearer tokens, SQLite (single file). No Docker.
 - Frontend: TypeScript + React + Vite in `/frontend`, React Router, TanStack Query, Leaflet + react-leaflet with OpenStreetMap tiles, Tailwind CSS.
 - NOT used: Next.js, Supabase, Docker, Mapbox, Google Maps, Postgres/MySQL, GraphQL.
+- Deployment exception: production on Laravel Cloud uses Postgres (Cloud's disk is wiped on every deploy, so a SQLite file can't survive); local dev and tests stay on SQLite. Frontend is deployed on Vercel.
 
 ## Source of truth
 
