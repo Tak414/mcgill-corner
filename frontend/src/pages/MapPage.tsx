@@ -1,23 +1,17 @@
 import { useEffect, useState } from 'react';
-import { EventSheet, ExchangeResult, FogMap } from '../components';
-import type { ExchangeResultProps } from '../components';
+import { EventSheet, FogMap } from '../components';
 import { messageFor } from '../api';
 import { useCancelRsvp, useEvent, useEvents, useExchange, useMe, useRsvp, useZones } from '../hooks';
 import { useAttendeeShell } from './attendeeContext';
 
-type ResultState =
-  | { status: 'pending'; partnerName: string }
-  | (Omit<Extract<ExchangeResultProps, { status: 'completed' }>, 'onClose'> & { celebrateZone: number | null });
-
 export function MapPage() {
-  const { showToast, celebrate } = useAttendeeShell();
+  const { showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd } = useAttendeeShell();
   const zones = useZones();
   const events = useEvents();
   const me = useMe();
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [sheetError, setSheetError] = useState<string | null>(null);
-  const [result, setResult] = useState<ResultState | null>(null);
   const event = useEvent(selectedId);
 
   const rsvp = useRsvp();
@@ -32,6 +26,12 @@ export function MapPage() {
       setSelectedId(null);
     }
   }, [selectedId, event.isError, event.data, event.error, showToast]);
+
+  // When a zone's fog starts to lift, get the event sheet out of the way so the map is visible.
+  const revealKey = reveal?.key ?? null;
+  useEffect(() => {
+    if (revealKey !== null) setSelectedId(null);
+  }, [revealKey]);
 
   function selectEvent(id: number | null) {
     setSelectedId(id);
@@ -56,28 +56,18 @@ export function MapPage() {
     exchange.mutate(
       { eventId: selectedId, code },
       {
+        // Shown by the layout, which also shows the partner's side and the unlock celebration after it.
         onSuccess: (res) => {
+          const exchangeOf = { eventId: selectedId, partnerId: res.partner.id, partnerName: res.partner.name };
           if (res.status === 'pending') {
-            setResult({ status: 'pending', partnerName: res.partner.name });
+            showResult({ ...exchangeOf, status: 'pending' });
           } else {
-            setResult({
-              status: 'completed',
-              partnerName: res.partner.name,
-              pointsGained: res.points_gained,
-              zone: res.zone,
-              totalPoints: res.total_points,
-              celebrateZone: res.zone.unlocked_now ? res.zone.zone_id : null,
-            });
+            showResult({ ...exchangeOf, status: 'completed', pointsGained: res.points_gained, zone: res.zone, totalPoints: res.total_points });
           }
         },
         onError: (e) => setSheetError(messageFor(e)),
       },
     );
-  }
-
-  function closeResult() {
-    if (result?.status === 'completed' && result.celebrateZone !== null) celebrate(result.celebrateZone);
-    setResult(null);
   }
 
   if (!zones.data) {
@@ -96,6 +86,10 @@ export function MapPage() {
         events={events.data ?? []}
         selectedEventId={selectedId}
         onPinClick={selectEvent}
+        heldZoneIds={heldZoneIds}
+        reveal={reveal}
+        onRevealStart={onRevealStart}
+        onRevealEnd={onRevealEnd}
       />
       {selectedId !== null && event.data && (
         <EventSheet
@@ -109,19 +103,6 @@ export function MapPage() {
           onClose={() => selectEvent(null)}
         />
       )}
-      {result &&
-        (result.status === 'pending' ? (
-          <ExchangeResult status="pending" partnerName={result.partnerName} onClose={closeResult} />
-        ) : (
-          <ExchangeResult
-            status="completed"
-            partnerName={result.partnerName}
-            pointsGained={result.pointsGained}
-            zone={result.zone}
-            totalPoints={result.totalPoints}
-            onClose={closeResult}
-          />
-        ))}
     </>
   );
 }

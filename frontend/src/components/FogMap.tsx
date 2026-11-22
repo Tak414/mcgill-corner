@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { divIcon, latLngBounds, type DivIcon, type LatLngExpression } from 'leaflet';
 import { MapContainer, Marker, Pane, Polygon, Rectangle, TileLayer, useMap, useMapEvents, ZoomControl } from 'react-leaflet';
 import { CloudFogOverlay } from './CloudFogOverlay';
@@ -15,6 +15,13 @@ const MIN_VIEW_ROWS = 3;
 const ZOOM_SNAP = 0.1;
 /* Starts here; GridOnly raises it if the screen needs a higher minimum. */
 const START_ZOOM = 14;
+/* Unlock reveal: fly to the zone, then let the fog drift away slowly enough to watch. */
+const FLY_SECONDS = 1.2;
+const REVEAL_MS = 3600;
+/* The gold outline and label pop stay a little after the fog is gone. */
+const GLOW_MS = REVEAL_MS + 1600;
+
+const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
 function eventIcon(event: EventSummary, selected: boolean) {
   const label = event.going_count > 0 ? String(event.going_count) : '';
@@ -74,14 +81,14 @@ const labelIcons = new Map<string, DivIcon>();
 const escapeHtml = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /** "McGill" / "Friends 0/1" while locked, "McGill" / "Friends 10" once unlocked; the full name when zoomed in. */
-function zoneLabelIcon(zoneId: number, friends: string, unlocked: boolean, size: 'sm' | 'md' | 'lg', full: boolean) {
-  const key = `${zoneId}|${friends}|${unlocked}|${size}|${full}`;
+function zoneLabelIcon(zoneId: number, friends: string, unlocked: boolean, size: 'sm' | 'md' | 'lg', full: boolean, justOpened = false) {
+  const key = `${zoneId}|${friends}|${unlocked}|${size}|${full}|${justOpened}`;
   let icon = labelIcons.get(key);
   if (!icon) {
     const name = escapeHtml(full ? zoneFullName(zoneId) : zoneShortName(zoneId));
     icon = divIcon({
       className: '',
-      html: `<div class="zone-label ${size}${unlocked ? ' open' : ''}"><span>${name}</span><span>Friends ${friends}</span></div>`,
+      html: `<div class="zone-label ${size}${unlocked ? ' open' : ''}${justOpened ? ' just-opened' : ''}"><span>${name}</span><span>Friends ${friends}</span></div>`,
       iconSize: [0, 0],
     });
     labelIcons.set(key, icon);
@@ -90,7 +97,7 @@ function zoneLabelIcon(zoneId: number, friends: string, unlocked: boolean, size:
 }
 
 /** Text inside every cell, so phones (no hover) can read each zone's progress. */
-function ZoneLabels({ zones, progressByZone }: { zones: Zones; progressByZone: Map<number, ZoneProgress> }) {
+function ZoneLabels({ zones, progressByZone, justOpenedId }: { zones: Zones; progressByZone: Map<number, ZoneProgress>; justOpenedId: number | null }) {
   const [zoom, setZoom] = useState<number | null>(null);
   const map = useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
   const current = zoom ?? map.getZoom();
@@ -107,15 +114,76 @@ function ZoneLabels({ zones, progressByZone }: { zones: Zones; progressByZone: M
         const count = progress?.exchange_count ?? 0;
         const friends = unlocked ? String(count) : `${count}/${cell.required_count}`;
         const center: [number, number] = [(cell.bounds.south + cell.bounds.north) / 2, (cell.bounds.west + cell.bounds.east) / 2];
-        return <Marker key={cell.id} position={center} icon={zoneLabelIcon(cell.id, friends, unlocked, size, full)} interactive={false} keyboard={false} />;
+        return <Marker key={cell.id} position={center} icon={zoneLabelIcon(cell.id, friends, unlocked, size, full, cell.id === justOpenedId)} interactive={false} keyboard={false} />;
       })}
     </Pane>
   );
 }
 
-export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClick }: FogMapProps) {
-  const progressByZone = new Map(zoneProgress.map((progress) => [progress.zone_id, progress]));
-  const unlockedCount = zoneProgress.filter((progress) => progress.unlocked).length;
+/** Flies the map to a zone (zoomed so it fills most of the screen) and reports when it has arrived. */
+function FlyToZone({ bounds, flightKey, onArrive }: { bounds: Zones['cells'][number]['bounds']; flightKey: number; onArrive: () => void }) {
+  const map = useMap();
+  const onArriveRef = useRef(onArrive);
+  useEffect(() => {
+    onArriveRef.current = onArrive;
+  });
+  useEffect(() => {
+    const target = latLngBounds([bounds.south, bounds.west], [bounds.north, bounds.east]).pad(0.3);
+    let arrived = false;
+    const arrive = () => {
+      if (arrived) return;
+      arrived = true;
+      onArriveRef.current();
+    };
+    map.once('moveend', arrive);
+    if (prefersReducedMotion()) map.fitBounds(target, { animate: false, maxZoom: 16 });
+    else map.flyToBounds(target, { duration: FLY_SECONDS, maxZoom: 16 });
+    // moveend may not fire when the map is already there.
+    const fallback = setTimeout(arrive, FLY_SECONDS * 1000 + 500);
+    return () => {
+      arrived = true;
+      map.off('moveend', arrive);
+      clearTimeout(fallback);
+    };
+  }, [map, flightKey, bounds.south, bounds.west, bounds.north, bounds.east]);
+  return null;
+}
+
+export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClick, heldZoneIds = [], reveal = null, onRevealStart, onRevealEnd }: FogMapProps) {
+  // Reveal: fly there first (fog still held), then clear the fog slowly, then glow a little longer.
+  const [arrivedKey, setArrivedKey] = useState<number | null>(null);
+  const [glowKey, setGlowKey] = useState<number | null>(null);
+  const clearing = reveal !== null && arrivedKey === reveal.key;
+  const onRevealEndRef = useRef(onRevealEnd);
+  useEffect(() => {
+    onRevealEndRef.current = onRevealEnd;
+  });
+  useEffect(() => {
+    if (!clearing || reveal === null) return;
+    const zoneId = reveal.zoneId;
+    const end = setTimeout(() => onRevealEndRef.current?.(zoneId), REVEAL_MS);
+    const glowOff = setTimeout(() => setGlowKey(null), GLOW_MS);
+    return () => {
+      clearTimeout(end);
+      clearTimeout(glowOff);
+    };
+  }, [clearing, reveal]);
+  const arrive = () => {
+    if (reveal === null) return;
+    setArrivedKey(reveal.key);
+    setGlowKey(reveal.key);
+    onRevealStart?.(reveal.zoneId);
+  };
+
+  // Held zones look as they did before the exchange until their fog starts clearing.
+  const held = new Set(heldZoneIds.filter((id) => !(clearing && reveal?.zoneId === id)));
+  const shownProgress = zoneProgress.map((progress) =>
+    held.has(progress.zone_id) ? { ...progress, unlocked: false, exchange_count: Math.max(0, progress.exchange_count - 1) } : progress,
+  );
+  const progressByZone = new Map(shownProgress.map((progress) => [progress.zone_id, progress]));
+  const unlockedCount = shownProgress.filter((progress) => progress.unlocked).length;
+  const revealCell = reveal === null ? undefined : zones.cells.find((cell) => cell.id === reveal.zoneId);
+  const glowing = glowKey !== null && revealCell !== undefined;
   const cloudZones = zones.cells.map((cell) => {
     const progress = progressByZone.get(cell.id);
     return {
@@ -138,7 +206,16 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <GridOnly bounds={zones.bounds} rows={zones.rows} cols={zones.cols} />
-        <CloudFogOverlay zones={cloudZones} theme="shadow" />
+        <CloudFogOverlay zones={cloudZones} theme="shadow" revealMs={prefersReducedMotion() ? 900 : REVEAL_MS} />
+        {reveal !== null && revealCell !== undefined && <FlyToZone bounds={revealCell.bounds} flightKey={reveal.key} onArrive={arrive} />}
+        {glowing && (
+          <Rectangle
+            key={`glow-${glowKey}`}
+            bounds={[[revealCell.bounds.south, revealCell.bounds.west], [revealCell.bounds.north, revealCell.bounds.east]]}
+            interactive={false}
+            pathOptions={{ className: 'zone-reveal-glow', color: '#f2c66d', weight: 4, fillColor: '#c9f2da', fillOpacity: 0 }}
+          />
+        )}
         {/* top-left is taken by the progress card */}
         <ZoomControl position="bottomright" />
         {zones.cells.map((cell) => {
@@ -155,7 +232,7 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
             />
           );
         })}
-        <ZoneLabels zones={zones} progressByZone={progressByZone} />
+        <ZoneLabels zones={zones} progressByZone={progressByZone} justOpenedId={glowing ? revealCell.id : null} />
         {events.map((event) => (
           <Marker
             key={event.id}
@@ -167,7 +244,7 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
         ))}
       </MapContainer>
       <div className="map-progress-card">
-        <div><span className="map-eyebrow">Your map</span><strong>{unlockedCount} zones open</strong></div>
+        <div><span className="map-eyebrow">Your map</span><strong key={unlockedCount} className={glowing ? 'count-bump' : undefined}>{unlockedCount} {unlockedCount === 1 ? 'zone' : 'zones'} open</strong></div>
         <span className="map-progress-empty">Meet someone to begin clearing the fog.</span>
       </div>
       <div className="map-compass" aria-hidden="true">N <span>↑</span></div>

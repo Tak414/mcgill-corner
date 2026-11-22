@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { BottomTabs, ToastStack, TopBar, UnlockCelebration } from '../components';
+import { BottomTabs, ExchangeResult, RankUpCelebration, ToastStack, TopBar, UnlockCelebration } from '../components';
 import type { ToastItem } from '../components';
 import { useAuth } from '../auth';
-import { useExchangeFeed, useMe, useZones, type ExchangeSummary } from '../hooks';
-import type { AttendeeShellContext } from './attendeeContext';
+import { useExchangeFeed, useFetchLeaderboardNow, useFetchMeNow, useMe, useZones, type ExchangeSummary } from '../hooks';
+import { zoneShortName } from '../components';
+import { feedback, GESTURE_EVENTS, primeFeedback } from '../lib/feedback';
+import type { AttendeeShellContext, LeaderboardLocationState, RankUp } from './attendeeContext';
+import { queueResult, type NewResultMoment, type ResultMoment } from './exchangeMoments';
 
 const TOAST_MS = 5_000;
 
 /**
  * Shared frame for the attendee screens (/ and /leaderboard): TopBar, BottomTabs, toasts,
- * the unlock celebration and the app-wide exchange feed, so they keep working on every tab.
+ * exchange results cards, the unlock celebration and the app-wide exchange feed, so they keep
+ * working on every tab. Results cards and celebrations share one order: a card first, then
+ * (after "Lovely, thanks") its zone's celebration, which stays until "Keep exploring".
  */
 export function AttendeeLayout() {
   const { user, logout } = useAuth();
@@ -18,6 +23,8 @@ export function AttendeeLayout() {
   const location = useLocation();
   const me = useMe();
   const zones = useZones();
+  const fetchMeNow = useFetchMeNow();
+  const fetchLeaderboardNow = useFetchLeaderboardNow();
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const nextToastId = useRef(0);
@@ -44,34 +51,179 @@ export function AttendeeLayout() {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const [celebrations, setCelebrations] = useState<Array<{ id: number; zoneId: number }>>([]);
-  const nextCelebrationId = useRef(0);
-  const celebrate = useCallback((zoneId: number) => {
-    const id = nextCelebrationId.current++;
-    setCelebrations((q) => [...q, { id, zoneId }]);
+  // Browsers only allow sound after a tap: unlock audio on any tap or key press.
+  useEffect(() => {
+    for (const type of GESTURE_EVENTS) window.addEventListener(type, primeFeedback, { passive: true, capture: true });
+    return () => {
+      for (const type of GESTURE_EVENTS) window.removeEventListener(type, primeFeedback, { capture: true });
+    };
   }, []);
-  const finishCelebration = useCallback(() => setCelebrations((q) => q.slice(1)), []);
 
+  // ---- results cards, then celebrations ----
+  const nextMomentId = useRef(0);
+  const [results, setResults] = useState<ResultMoment[]>([]);
+  const [celebrations, setCelebrations] = useState<Array<{ id: number; zoneId: number }>>([]);
+  // A zone that just opened keeps its fog until the player has seen the card and the celebration;
+  // then the map flies there and clears it (reveal).
+  const [heldZoneIds, setHeldZoneIds] = useState<number[]>([]);
+  const [reveal, setReveal] = useState<{ zoneId: number; key: number } | null>(null);
+  const holdFog = useCallback((zoneId: number) => setHeldZoneIds((ids) => (ids.includes(zoneId) ? ids : [...ids, zoneId])), []);
+
+  // ---- rank-up: compare the rank before and after each completed exchange ----
+  const rankBaseline = useRef<number | null>(null);
+  const [pendingRankUp, setPendingRankUp] = useState<{ from: number } | null>(null);
+  const [rankCelebration, setRankCelebration] = useState<(RankUp & { id: number }) | null>(null);
+  const userId = user?.role === 'attendee' ? user.id : null;
+  useEffect(() => {
+    rankBaseline.current = null;
+    if (userId === null) return;
+    fetchLeaderboardNow().then(
+      (board) => {
+        rankBaseline.current = board.me?.rank ?? null;
+      },
+      () => {},
+    );
+  }, [userId, fetchLeaderboardNow]);
+  const checkRank = useCallback(() => {
+    fetchLeaderboardNow().then(
+      (board) => {
+        const now = board.me?.rank ?? null;
+        const before = rankBaseline.current;
+        if (now !== null && before !== null && now < before) setPendingRankUp((pending) => pending ?? { from: before });
+        if (now !== null) rankBaseline.current = now;
+      },
+      () => {},
+    );
+  }, [fetchLeaderboardNow]);
+
+  const showResult = useCallback(
+    (moment: NewResultMoment) => {
+      if (moment.status === 'completed' && moment.zone.unlocked_now) holdFog(moment.zone.zone_id);
+      if (moment.status === 'completed') checkRank();
+      const id = nextMomentId.current++;
+      setResults((queue) => queueResult(queue, moment, id));
+    },
+    [holdFog, checkRank],
+  );
+
+  const closeResult = useCallback(() => {
+    const first = results[0];
+    if (first?.status === 'completed' && first.zone.unlocked_now) {
+      const id = nextMomentId.current++;
+      setCelebrations((q) => [...q, { id, zoneId: first.zone.zone_id }]);
+    }
+    setResults((queue) => queue.slice(1));
+  }, [results]);
+  const finishCelebration = useCallback(() => {
+    const done = celebrations[0];
+    setCelebrations((q) => q.slice(1));
+    if (done === undefined) return;
+    setReveal({ zoneId: done.zoneId, key: nextMomentId.current++ });
+    if (location.pathname !== '/') navigate('/');
+  }, [celebrations, location.pathname, navigate]);
+
+  const onRevealStart = useCallback(() => feedback('reveal'), []);
+  const onRevealEnd = useCallback(
+    (zoneId: number) => {
+      setHeldZoneIds((ids) => ids.filter((id) => id !== zoneId));
+      setReveal((current) => (current?.zoneId === zoneId ? null : current));
+      feedback('open');
+      const open = (me.data?.zone_progress.filter((z) => z.unlocked).length ?? 0) || 1;
+      showToast(`${zoneShortName(zoneId)} is open · ${open} ${open === 1 ? 'zone' : 'zones'} explored. Where next?`);
+    },
+    [me.data, showToast],
+  );
+  const busy = results.length > 0 || celebrations.length > 0 || reveal !== null || rankCelebration !== null;
+  useEffect(() => {
+    if (pendingRankUp === null || busy) return;
+    // A short pause so the end of the previous moment (e.g. the fog toast) can land first.
+    const timer = setTimeout(() => {
+      const state: LeaderboardLocationState = { rankUpFrom: pendingRankUp.from };
+      setPendingRankUp(null);
+      navigate('/leaderboard', { state });
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, [pendingRankUp, busy, navigate]);
+  const celebrateRankUp = useCallback((rankUp: RankUp) => setRankCelebration({ ...rankUp, id: nextMomentId.current++ }), []);
+  const finishRankCelebration = useCallback(() => {
+    setRankCelebration(null);
+    navigate('/');
+  }, [navigate]);
+
+  // Safety net: never leave a zone's fog held if the map could not play the reveal.
+  useEffect(() => {
+    if (reveal === null) return;
+    const zoneId = reveal.zoneId;
+    const timer = setTimeout(() => {
+      setHeldZoneIds((ids) => ids.filter((id) => id !== zoneId));
+      setReveal((current) => (current?.zoneId === zoneId ? null : current));
+    }, 12_000);
+    return () => clearTimeout(timer);
+  }, [reveal]);
+
+  // The partner completed an exchange we started: same "You met …" card as theirs.
   const onExchange = useCallback(
     (ex: ExchangeSummary) => {
-      showToast(`You met ${ex.partner.name}! +${ex.points_gained}`);
-      if (ex.unlocked_now) celebrate(ex.zone_id);
+      if (ex.unlocked_now) holdFog(ex.zone_id);
+      fetchMeNow().then(
+        (fresh) => {
+          const progress = fresh.zone_progress.find((z) => z.zone_id === ex.zone_id);
+          showResult({
+            eventId: ex.event.id,
+            partnerId: ex.partner.id,
+            status: 'completed',
+            partnerName: ex.partner.name,
+            pointsGained: ex.points_gained,
+            zone: {
+              zone_id: ex.zone_id,
+              exchange_count: progress?.exchange_count ?? 1,
+              required_count: progress?.required_count ?? 1,
+              unlocked: progress?.unlocked ?? ex.unlocked_now,
+              unlocked_now: ex.unlocked_now,
+            },
+            totalPoints: fresh.points,
+          });
+        },
+        // Couldn't load the details: still say it happened.
+        () => showToast(`You met ${ex.partner.name}! +${ex.points_gained}`),
+      );
     },
-    [showToast, celebrate],
+    [fetchMeNow, holdFog, showResult, showToast],
   );
   useExchangeFeed(user?.role === 'attendee' ? user.id : null, onExchange);
+
+  const result = results[0];
+  // A celebration only shows once no results card is waiting, so nothing ends up hidden behind it.
+  const celebrating = result === undefined ? celebrations[0] : undefined;
+
+  // Sound + vibration once per card / celebration as it appears.
+  const resultKey = result ? `${result.id}:${result.status}` : null;
+  useEffect(() => {
+    if (!resultKey) return;
+    feedback(resultKey.endsWith('completed') ? 'meet' : 'pending');
+  }, [resultKey]);
+  const rankCelebrationId = rankCelebration?.id ?? null;
+  useEffect(() => {
+    if (rankCelebrationId !== null) feedback('rankup');
+  }, [rankCelebrationId]);
+  const celebrationId = celebrating?.id ?? null;
+  useEffect(() => {
+    if (celebrationId !== null) feedback('unlock');
+  }, [celebrationId]);
 
   async function handleLogout() {
     await logout(); // POST /logout, clear token + query cache
     navigate('/login', { replace: true });
   }
 
-  const shell = useMemo<AttendeeShellContext>(() => ({ showToast, celebrate }), [showToast, celebrate]);
+  const shell = useMemo<AttendeeShellContext>(
+    () => ({ showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd, celebrateRankUp }),
+    [showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd, celebrateRankUp],
+  );
 
   const unlockedCount = me.data?.zone_progress.filter((z) => z.unlocked).length ?? 0;
   const activeTab = location.pathname === '/leaderboard' ? 'leaderboard' : 'map';
-  const celebrating = celebrations[0];
-  const bonus = celebrating === undefined ? 0 : (zones.data?.cells.find((c) => c.id === celebrating.zoneId)?.bonus_points ?? 0);
+  const bonusFor = (zoneId: number) => zones.data?.cells.find((c) => c.id === zoneId)?.bonus_points ?? 0;
 
   return (
     <div className="attendee-shell">
@@ -87,8 +239,32 @@ export function AttendeeLayout() {
       </main>
       <BottomTabs active={activeTab} onChange={(tab) => navigate(tab === 'map' ? '/' : '/leaderboard')} />
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
+      {result !== undefined &&
+        (result.status === 'pending' ? (
+          <ExchangeResult key={result.id} status="pending" partnerName={result.partnerName} onClose={closeResult} />
+        ) : (
+          <ExchangeResult
+            key={result.id}
+            status="completed"
+            partnerName={result.partnerName}
+            pointsGained={result.pointsGained}
+            bonusPoints={result.zone.unlocked_now ? Math.min(bonusFor(result.zone.zone_id), result.pointsGained) : 0}
+            zone={result.zone}
+            totalPoints={result.totalPoints}
+            onClose={closeResult}
+          />
+        ))}
+      {rankCelebration !== null && result === undefined && celebrating === undefined && (
+        <RankUpCelebration
+          key={rankCelebration.id}
+          rank={rankCelebration.rank}
+          places={rankCelebration.places}
+          nextGoal={rankCelebration.nextGoal}
+          onDone={finishRankCelebration}
+        />
+      )}
       {celebrating !== undefined && (
-        <UnlockCelebration key={celebrating.id} zoneId={celebrating.zoneId} bonusPoints={bonus} onDone={finishCelebration} />
+        <UnlockCelebration key={celebrating.id} zoneId={celebrating.zoneId} bonusPoints={bonusFor(celebrating.zoneId)} onDone={finishCelebration} />
       )}
     </div>
   );
