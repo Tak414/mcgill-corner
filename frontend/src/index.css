@@ -500,3 +500,12 @@ button.topbar-avatar:focus-visible { outline: 3px solid rgba(22,125,98,.35); out
 @media (prefers-reduced-motion: reduce) {
   .leaderboard-row.just-climbed, .rank-climb, .leaderboard-emblem.just-climbed { animation: none; }
 }
+
+/* Rank-up celebration: the medal counts down from the old rank to the new one. */
+.rankup-medal { position: relative; z-index: 1; display: grid; width: 88px; height: 88px; place-items: center; border-radius: 50%; background: #e2f2eb; color: #105843; font-size: 1.75rem; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -.03em; box-shadow: 0 0 0 7px rgba(255,255,255,.12), 0 14px 34px rgba(0,0,0,.28); animation: medal-pop 760ms cubic-bezier(.2,1.5,.4,1) 120ms both; }
+.rankup-medal.tier-1 { background: #1f4d3e; color: #f2c66d; box-shadow: 0 0 0 7px rgba(242,198,109,.25), 0 14px 34px rgba(0,0,0,.3); }
+.rankup-medal.tier-2 { background: #e3ebe6; color: #4f6461; }
+.rankup-medal.tier-3 { background: #f6e2d3; color: #a65a33; }
+@keyframes medal-pop { from { transform: scale(.3) rotate(-12deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+.rankup-celebration .unlock-message p strong { color: #f2c66d; }
+@media (prefers-reduced-motion: reduce) { .rankup-medal { animation: none; } }

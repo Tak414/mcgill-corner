@@ -15,7 +15,14 @@ export type AttendeeShellContext = {
   reveal: { zoneId: number; key: number } | null;
   onRevealStart: (zoneId: number) => void;
   onRevealEnd: (zoneId: number) => void;
+  /** Show the rank-up celebration (after the leaderboard row has slid up). */
+  celebrateRankUp: (rankUp: RankUp) => void;
 };
+
+export type RankUp = { rank: number; places: number; nextGoal: { name: string; points: number } | null };
+
+/** Router state for /leaderboard when the app takes the player there to show a climb. */
+export type LeaderboardLocationState = { rankUpFrom?: number } | null;
 
 export function useAttendeeShell(): AttendeeShellContext {
   return useOutletContext<AttendeeShellContext>();

@@ -24,6 +24,12 @@ export function useFetchMeNow() {
   return useCallback(() => qc.fetchQuery({ queryKey: queryKeys.me, queryFn: api.getMe, staleTime: 0 }), [qc]);
 }
 
+/** Fetch the leaderboard right now (used to notice a rank-up after an exchange). */
+export function useFetchLeaderboardNow() {
+  const qc = useQueryClient();
+  return useCallback(() => qc.fetchQuery({ queryKey: queryKeys.leaderboard, queryFn: api.getLeaderboard, staleTime: 0 }), [qc]);
+}
+
 /** Detail sheet, every 5 s while it is open (pass null when closed). */
 export function useEvent(id: number | null) {
   return useQuery({

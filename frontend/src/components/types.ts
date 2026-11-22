@@ -98,6 +98,16 @@ export type ExchangeResultProps =
 
 export type ZoneLabelProps = { zoneId: number };
 
+export type RankUpCelebrationProps = {
+  /** The new rank. */
+  rank: number;
+  /** Places gained. */
+  places: number;
+  /** The closest person above: points still needed to catch them; null when the viewer leads. */
+  nextGoal: { name: string; points: number } | null;
+  onDone: () => void;
+};
+
 export type UnlockCelebrationProps ={ zoneId: number; bonusPoints: number; onDone: () => void };
 
 
@@ -112,7 +122,7 @@ export type LeaderboardProps = {
   me: LeaderboardEntry | null;
   /** The viewer's rank the last time they looked; when it was worse, their row slides up to the new rank. */
   previousRank?: number | null;
-  /** Called once when the rank-up animation plays, with the number of places gained. */
+  /** Called once when the viewer's row has finished sliding up, with the number of places gained. */
   onRankUp?: (places: number) => void;
 };
 

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { BottomTabs, ExchangeResult, ToastStack, TopBar, UnlockCelebration } from '../components';
+import { BottomTabs, ExchangeResult, RankUpCelebration, ToastStack, TopBar, UnlockCelebration } from '../components';
 import type { ToastItem } from '../components';
 import { useAuth } from '../auth';
-import { useExchangeFeed, useFetchMeNow, useMe, useZones, type ExchangeSummary } from '../hooks';
+import { useExchangeFeed, useFetchLeaderboardNow, useFetchMeNow, useMe, useZones, type ExchangeSummary } from '../hooks';
 import { zoneShortName } from '../components';
-import { feedback, primeFeedback } from '../lib/feedback';
-import type { AttendeeShellContext } from './attendeeContext';
+import { feedback, GESTURE_EVENTS, primeFeedback } from '../lib/feedback';
+import type { AttendeeShellContext, LeaderboardLocationState, RankUp } from './attendeeContext';
 import { queueResult, type NewResultMoment, type ResultMoment } from './exchangeMoments';
 
 const TOAST_MS = 5_000;
@@ -24,6 +24,7 @@ export function AttendeeLayout() {
   const me = useMe();
   const zones = useZones();
   const fetchMeNow = useFetchMeNow();
+  const fetchLeaderboardNow = useFetchLeaderboardNow();
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const nextToastId = useRef(0);
@@ -52,11 +53,9 @@ export function AttendeeLayout() {
 
   // Browsers only allow sound after a tap: unlock audio on any tap or key press.
   useEffect(() => {
-    window.addEventListener('pointerdown', primeFeedback, { passive: true });
-    window.addEventListener('keydown', primeFeedback);
+    for (const type of GESTURE_EVENTS) window.addEventListener(type, primeFeedback, { passive: true, capture: true });
     return () => {
-      window.removeEventListener('pointerdown', primeFeedback);
-      window.removeEventListener('keydown', primeFeedback);
+      for (const type of GESTURE_EVENTS) window.removeEventListener(type, primeFeedback, { capture: true });
     };
   }, []);
 
@@ -70,13 +69,41 @@ export function AttendeeLayout() {
   const [reveal, setReveal] = useState<{ zoneId: number; key: number } | null>(null);
   const holdFog = useCallback((zoneId: number) => setHeldZoneIds((ids) => (ids.includes(zoneId) ? ids : [...ids, zoneId])), []);
 
+  // ---- rank-up: compare the rank before and after each completed exchange ----
+  const rankBaseline = useRef<number | null>(null);
+  const [pendingRankUp, setPendingRankUp] = useState<{ from: number } | null>(null);
+  const [rankCelebration, setRankCelebration] = useState<(RankUp & { id: number }) | null>(null);
+  const userId = user?.role === 'attendee' ? user.id : null;
+  useEffect(() => {
+    rankBaseline.current = null;
+    if (userId === null) return;
+    fetchLeaderboardNow().then(
+      (board) => {
+        rankBaseline.current = board.me?.rank ?? null;
+      },
+      () => {},
+    );
+  }, [userId, fetchLeaderboardNow]);
+  const checkRank = useCallback(() => {
+    fetchLeaderboardNow().then(
+      (board) => {
+        const now = board.me?.rank ?? null;
+        const before = rankBaseline.current;
+        if (now !== null && before !== null && now < before) setPendingRankUp((pending) => pending ?? { from: before });
+        if (now !== null) rankBaseline.current = now;
+      },
+      () => {},
+    );
+  }, [fetchLeaderboardNow]);
+
   const showResult = useCallback(
     (moment: NewResultMoment) => {
       if (moment.status === 'completed' && moment.zone.unlocked_now) holdFog(moment.zone.zone_id);
+      if (moment.status === 'completed') checkRank();
       const id = nextMomentId.current++;
       setResults((queue) => queueResult(queue, moment, id));
     },
-    [holdFog],
+    [holdFog, checkRank],
   );
 
   const closeResult = useCallback(() => {
@@ -106,6 +133,23 @@ export function AttendeeLayout() {
     },
     [me.data, showToast],
   );
+  const busy = results.length > 0 || celebrations.length > 0 || reveal !== null || rankCelebration !== null;
+  useEffect(() => {
+    if (pendingRankUp === null || busy) return;
+    // A short pause so the end of the previous moment (e.g. the fog toast) can land first.
+    const timer = setTimeout(() => {
+      const state: LeaderboardLocationState = { rankUpFrom: pendingRankUp.from };
+      setPendingRankUp(null);
+      navigate('/leaderboard', { state });
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, [pendingRankUp, busy, navigate]);
+  const celebrateRankUp = useCallback((rankUp: RankUp) => setRankCelebration({ ...rankUp, id: nextMomentId.current++ }), []);
+  const finishRankCelebration = useCallback(() => {
+    setRankCelebration(null);
+    navigate('/');
+  }, [navigate]);
+
   // Safety net: never leave a zone's fog held if the map could not play the reveal.
   useEffect(() => {
     if (reveal === null) return;
@@ -158,6 +202,10 @@ export function AttendeeLayout() {
     if (!resultKey) return;
     feedback(resultKey.endsWith('completed') ? 'meet' : 'pending');
   }, [resultKey]);
+  const rankCelebrationId = rankCelebration?.id ?? null;
+  useEffect(() => {
+    if (rankCelebrationId !== null) feedback('rankup');
+  }, [rankCelebrationId]);
   const celebrationId = celebrating?.id ?? null;
   useEffect(() => {
     if (celebrationId !== null) feedback('unlock');
@@ -169,8 +217,8 @@ export function AttendeeLayout() {
   }
 
   const shell = useMemo<AttendeeShellContext>(
-    () => ({ showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd }),
-    [showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd],
+    () => ({ showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd, celebrateRankUp }),
+    [showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd, celebrateRankUp],
   );
 
   const unlockedCount = me.data?.zone_progress.filter((z) => z.unlocked).length ?? 0;
@@ -206,6 +254,15 @@ export function AttendeeLayout() {
             onClose={closeResult}
           />
         ))}
+      {rankCelebration !== null && result === undefined && celebrating === undefined && (
+        <RankUpCelebration
+          key={rankCelebration.id}
+          rank={rankCelebration.rank}
+          places={rankCelebration.places}
+          nextGoal={rankCelebration.nextGoal}
+          onDone={finishRankCelebration}
+        />
+      )}
       {celebrating !== undefined && (
         <UnlockCelebration key={celebrating.id} zoneId={celebrating.zoneId} bonusPoints={bonusFor(celebrating.zoneId)} onDone={finishCelebration} />
       )}

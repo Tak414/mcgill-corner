@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Leaderboard } from '../components';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Leaderboard, nextGoal } from '../components';
 import { messageFor } from '../api';
 import { useAuth } from '../auth';
 import { useLeaderboard } from '../hooks';
-import { feedback } from '../lib/feedback';
+import { useAttendeeShell, type LeaderboardLocationState } from './attendeeContext';
 
-/** The rank this device last showed the user, so a climb can be animated next time (display only). */
+/** The rank this device last showed the user, so a climb can also be animated on a normal visit (display only). */
 const rankKey = (userId: number) => `unlock.lastRank.${userId}`;
 
 function readRank(userId: number | undefined): number | null {
@@ -20,9 +21,18 @@ function readRank(userId: number | undefined): number | null {
 
 export function LeaderboardPage() {
   const { user } = useAuth();
+  const { celebrateRankUp } = useAttendeeShell();
+  const location = useLocation();
+  const navigate = useNavigate();
   const board = useLeaderboard();
-  // Read once when the page opens: the rank from the previous visit.
-  const [previousRank] = useState(() => readRank(user?.id));
+  // Read once when the page opens: the rank before a climb the app brought us here to show,
+  // or else the rank from the previous visit on this device.
+  const [previousRank] = useState(() => (location.state as LeaderboardLocationState)?.rankUpFrom ?? readRank(user?.id));
+
+  // Don't replay the climb on refresh or when coming back through history.
+  useEffect(() => {
+    if ((location.state as LeaderboardLocationState)?.rankUpFrom !== undefined) navigate(location.pathname, { replace: true, state: null });
+  }, [location.state, location.pathname, navigate]);
 
   const myRank = board.data?.me?.rank ?? null;
   useEffect(() => {
@@ -41,5 +51,15 @@ export function LeaderboardPage() {
       </div>
     );
   }
-  return <Leaderboard top={board.data.top} me={board.data.me} previousRank={previousRank} onRankUp={() => feedback('rankup')} />;
+  const { top, me } = board.data;
+  return (
+    <Leaderboard
+      top={top}
+      me={me}
+      previousRank={previousRank}
+      onRankUp={(places) => {
+        if (me !== null) celebrateRankUp({ rank: me.rank, places, nextGoal: nextGoal(top, me) });
+      }}
+    />
+  );
 }

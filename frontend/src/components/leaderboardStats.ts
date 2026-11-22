@@ -92,3 +92,13 @@ export function boardBeforeRankUp(top: LeaderboardEntry[], me: LeaderboardEntry,
   const index = Math.min(others.length, Math.max(0, previousRank - 1));
   return { top: [...others.slice(0, index), oldMe, ...others.slice(index)], me: oldMe };
 }
+
+/** The closest person with more points than the viewer, and how many points are needed to catch them. */
+export function nextGoal(top: LeaderboardEntry[], me: LeaderboardEntry): { name: string; points: number } | null {
+  let best: LeaderboardEntry | null = null;
+  for (const entry of top) {
+    if (entry.user_id === me.user_id || entry.points <= me.points) continue;
+    if (best === null || entry.points < best.points) best = entry;
+  }
+  return best === null ? null : { name: best.name, points: best.points - me.points };
+}

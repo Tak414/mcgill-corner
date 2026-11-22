@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boardBeforeRankUp, condenseBoard, rankTier, shareOfTop, summarize } from './leaderboardStats';
+import { boardBeforeRankUp, condenseBoard, nextGoal, rankTier, shareOfTop, summarize } from './leaderboardStats';
 
 const entry = (rank: number, user_id: number, points: number) => ({ rank, user_id, name: `U${user_id}`, points });
 
@@ -71,5 +71,15 @@ describe('condensed board', () => {
     expect(before.top).toHaveLength(20);
     // The people passed were one place higher before: no duplicate ranks around the old spot.
     expect(before.top.slice(3, 10).map((e) => e.rank)).toEqual([4, 5, 6, 7, 8, 9, 10]);
+  });
+});
+
+describe('next goal', () => {
+  const top = [entry(1, 9, 3400), entry(2, 5, 2950), entry(3, 3, 2600), entry(4, 8, 2210)];
+  it('is the closest person with more points', () => {
+    expect(nextGoal(top, top[2])).toEqual({ name: 'U5', points: 350 });
+  });
+  it('is null for the leader', () => {
+    expect(nextGoal(top, top[0])).toBeNull();
   });
 });

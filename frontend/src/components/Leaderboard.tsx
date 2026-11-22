@@ -3,8 +3,8 @@ import { boardBeforeRankUp, condenseBoard, rankTier, shareOfTop, summarize } fro
 import type { LeaderboardEntry, LeaderboardProps } from './types';
 
 /* How long the old position shows before the viewer's row slides up, and how long the slide takes. */
-const RANK_UP_DELAY_MS = 700;
-const SLIDE_MS = 750;
+const RANK_UP_DELAY_MS = 1200;
+const SLIDE_MS = 1600;
 
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
@@ -46,10 +46,17 @@ export function Leaderboard({ top, me, previousRank = null, onRankUp }: Leaderbo
   });
   useEffect(() => {
     if (settled || climbKey === null) return;
+    const timer = setTimeout(() => setPlayedKey(climbKey), RANK_UP_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [settled, climbKey]);
+  // Tell the page once the row has finished sliding (it shows the rank-up celebration then).
+  const reportedKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (!settled || climbKey === null || reportedKey.current === climbKey) return;
     const timer = setTimeout(() => {
-      setPlayedKey(climbKey);
+      reportedKey.current = climbKey;
       onRankUpRef.current?.(climbed);
-    }, RANK_UP_DELAY_MS);
+    }, reducedMotion() ? 0 : SLIDE_MS + 250);
     return () => clearTimeout(timer);
   }, [settled, climbKey, climbed]);
 
@@ -75,6 +82,19 @@ export function Leaderboard({ top, me, previousRank = null, onRankUp }: Leaderbo
     });
     lastTops.current = nextTops;
   });
+  // During a climb keep the viewer's row in the middle of the screen (not under the tab bar):
+  // at the old spot first, then again once it has slid up.
+  const myId = me?.user_id ?? null;
+  useEffect(() => {
+    if (climbKey === null || myId === null) return;
+    const centre = () => rowEls.current.get(myId)?.scrollIntoView({ block: 'center', behavior: reducedMotion() ? 'auto' : 'smooth' });
+    if (!settled) {
+      centre();
+      return;
+    }
+    const timer = setTimeout(centre, SLIDE_MS);
+    return () => clearTimeout(timer);
+  }, [settled, climbKey, myId]);
   const refFor = (id: number) => (el: HTMLLIElement | null) => {
     if (el) rowEls.current.set(id, el);
     else rowEls.current.delete(id);
