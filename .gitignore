@@ -15,6 +15,9 @@ pnpm-debug.log*
 /frontend/dist/
 /frontend/.env
 
+# Editor settings
+/.vscode/
+
 # Local agent and cloud configuration
 /.aws/
 /.agents/
