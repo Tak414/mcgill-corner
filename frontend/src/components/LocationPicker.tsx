@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { divIcon, type Marker as LeafletMarker } from 'leaflet';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import type { LatLng, LocationPickerProps } from './types';
@@ -43,8 +43,8 @@ export function LocationPicker({ value, onChange, onSearch, isSearching, searchE
     if (cooldownTimer.current !== null) window.clearTimeout(cooldownTimer.current);
   }, []);
 
-  function submitSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // Not a <form>: LocationPicker renders inside EventForm's <form>, and nested forms break submission.
+  function runSearch() {
     const search = query.trim();
     if (search && !isSearching && !coolingDown) {
       onSearch(search);
@@ -53,12 +53,18 @@ export function LocationPicker({ value, onChange, onSearch, isSearching, searchE
     }
   }
 
+  function searchOnEnter(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault(); // Enter here must search, not submit the surrounding event form
+    runSearch();
+  }
+
   return (
     <section className="location-picker" aria-label="Choose the event pin">
-      <form className="location-search" onSubmit={submitSearch}>
-        <label className="location-search-input"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search an address" aria-label="Search an address" /></label>
-        <button className="ui-button" type="submit" disabled={isSearching || coolingDown || query.trim().length === 0}>{isSearching ? 'Searching…' : coolingDown ? 'Wait a moment' : 'Search'}</button>
-      </form>
+      <div className="location-search" role="search">
+        <label className="location-search-input"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={searchOnEnter} placeholder="Search an address" aria-label="Search an address" /></label>
+        <button className="ui-button" type="button" onClick={runSearch} disabled={isSearching || coolingDown || query.trim().length === 0}>{isSearching ? 'Searching…' : coolingDown ? 'Wait a moment' : 'Search'}</button>
+      </div>
       {searchError && <p className="location-error" role="alert">{searchError}</p>}
       <div className="location-map-frame">
         <MapContainer className="location-map" center={[mapCenter.lat, mapCenter.lng]} zoom={14} scrollWheelZoom aria-label="Tap or drag to place the event pin">

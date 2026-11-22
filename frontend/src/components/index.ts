@@ -3,7 +3,6 @@ export { TopBar } from './TopBar';
 export { BottomTabs } from './BottomTabs';
 export { FogMap } from './FogMap';
 export { CodeInput } from './CodeInput';
-export type { CodeInputProps } from './CodeInput';
 export { EventSheet } from './EventSheet';
 export { ExchangeResult } from './ExchangeResult';
 export { UnlockCelebration } from './UnlockCelebration';
@@ -12,7 +11,7 @@ export { Leaderboard } from './Leaderboard';
 export { HostEventList } from './HostEventList';
 export { LocationPicker } from './LocationPicker';
 export { EventForm } from './EventForm';
-export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps, HostEventListProps, LocationPickerProps, EventFormProps } from './types';
+export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, CodeInputProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps, HostEventListProps, LocationPickerProps, EventFormProps } from './types';
 
 export type {
   Zones,

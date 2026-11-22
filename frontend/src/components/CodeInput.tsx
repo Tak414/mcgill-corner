@@ -1,9 +1,5 @@
 import { useState, type FormEvent } from 'react';
-
-export type CodeInputProps = {
-  isSubmitting: boolean;
-  onSubmitCode: (code: string) => void;
-};
+import type { CodeInputProps } from './types';
 
 export function CodeInput({ isSubmitting, onSubmitCode }: CodeInputProps) {
   const [code, setCode] = useState('');

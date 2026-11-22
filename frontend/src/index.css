@@ -87,12 +87,24 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .topbar-points { background: #fff3d9; color: #8b6320; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--unlock-accent); box-shadow: 0 0 0 3px #d9eee4; }
 .topbar-avatar { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border: 1px solid #cfdfd4; border-radius: 50%; background: #e5f1e9; color: var(--unlock-accent-dark); font-size: .74rem; font-weight: 850; }
+button.topbar-avatar { padding: 0; cursor: pointer; font: inherit; font-weight: 800; }
+button.topbar-avatar:focus-visible { outline: 3px solid rgba(22,125,98,.35); outline-offset: 2px; }
+.topbar-account { position: relative; }
+.topbar:has(.topbar-menu) { z-index: 1200; } /* menu above the map overlays */
+.topbar-menu { position: absolute; z-index: 1100; top: calc(100% + 10px); right: 0; display: grid; min-width: 210px; gap: 10px; padding: 14px; border-radius: 18px; }
+.topbar-menu-who { display: grid; gap: 3px; }
+.topbar-menu-who strong { font-size: .92rem; }
+.topbar-menu-who span { color: var(--unlock-muted); font-size: .78rem; }
+.topbar-menu-logout { min-height: 40px; border: 0; border-radius: 12px; background: #fff0eb; color: #a54d35; font-weight: 750; }
+.topbar-menu-logout:hover { background: #ffe4da; }
+.gallery-topbar { overflow: visible; min-height: 230px; }
 @media (max-width: 440px) { .topbar { padding: 10px 13px; } .topbar-brand { gap: 7px; font-size: .75rem; } .topbar-stats { gap: 5px; } .topbar-zones,.topbar-points { padding: 0 8px; font-size: .68rem; } }
 .bottom-tabs { position: absolute; z-index: 700; left: 50%; bottom: 22px; display: flex; gap: 5px; width: max-content; max-width: calc(100% - 28px); padding: 6px; transform: translateX(-50%); border: 1px solid rgba(229,235,231,.85); border-radius: 999px; background: rgba(255,254,250,.96); box-shadow: 0 10px 32px rgba(26,52,43,.2); backdrop-filter: blur(16px); }
 .bottom-tabs button { display: flex; min-width: 112px; min-height: 48px; align-items: center; justify-content: center; gap: 8px; padding: 0 17px; border: 0; border-radius: 999px; background: transparent; color: #50615a; font-size: .82rem; font-weight: 750; }
 .bottom-tabs button.active { background: var(--unlock-ink); color: white; }
 .bottom-tabs svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.fog-map-wrap { position: relative; height: 100%; min-height: 520px; }
+/* isolation: Leaflet's panes and controls (z-index up to 1000) stay below the app's sheet, result and celebration overlays. */
+.fog-map-wrap { position: relative; isolation: isolate; height: 100%; min-height: 520px; }
 .fog-map { width: 100%; height: 100%; min-height: 520px; }
 .map-progress-card { position: absolute; z-index: 500; top: 18px; left: 18px; display: flex; max-width: min(430px,calc(100% - 90px)); flex-wrap: wrap; align-items: center; gap: 13px; padding: 12px 15px; border: 1px solid rgba(230,237,232,.88); border-radius: 17px; background: rgba(255,254,250,.93); box-shadow: 0 8px 26px rgba(28,53,44,.13); backdrop-filter: blur(14px); }
 .map-progress-card > div:first-child { display: grid; gap: 2px; }
@@ -115,11 +127,12 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .code-entry::placeholder { color: #bdc9c2; }
 .code-submit { width: 58px; min-width: 58px; min-height: 58px; padding: 0; font-size: 1.4rem; }
 .sheet-backdrop { position: absolute; z-index: 600; inset: 0; display: flex; align-items: flex-end; justify-content: center; background: linear-gradient(180deg,rgba(15,37,31,.06),rgba(15,37,31,.24)); }
-.event-sheet { position: relative; width: min(100%,570px); max-height: min(88%,760px); overflow: hidden; border-radius: 26px 26px 0 0; background: var(--unlock-paper); box-shadow: 0 -18px 55px rgba(19,44,34,.22); animation: sheet-up .24s ease-out; }
+.event-sheet { position: relative; display: flex; flex-direction: column; width: min(100%,570px); max-height: min(88%,760px); overflow: hidden; border-radius: 26px 26px 0 0; background: var(--unlock-paper); box-shadow: 0 -18px 55px rgba(19,44,34,.22); animation: sheet-up .24s ease-out; }
 @keyframes sheet-up { from { transform: translateY(30px); opacity: .6; } to { transform: translateY(0); opacity: 1; } }
 .sheet-handle { position: absolute; z-index: 2; top: 10px; left: 50%; width: 38px; height: 4px; transform: translateX(-50%); border-radius: 4px; background: rgba(255,255,255,.8); }
 .sheet-close { position: absolute; z-index: 4; top: 17px; right: 17px; display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(255,255,255,.6); border-radius: 50%; background: rgba(255,254,250,.92); color: var(--unlock-ink); font-size: 1.45rem; box-shadow: 0 3px 14px rgba(28,45,38,.1); }
-.sheet-scroll { max-height: inherit; overflow-y: auto; overscroll-behavior: contain; }
+/* The sheet is a flex column so this area gets a definite height and scrolls; `max-height: inherit` resolved to none and clipped the code input. */
+.sheet-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .event-cover { position: relative; height: 145px; overflow: hidden; padding: 22px; background: radial-gradient(circle at 70% 10%,rgba(255,255,255,.55),transparent 29%), linear-gradient(135deg,#bddfd0,#dfefe4 55%,#f7ead3); }
 .event-cover::before,.event-cover::after { position: absolute; content: ''; width: 210px; height: 210px; border: 1px solid rgba(22,125,98,.24); border-radius: 50%; }
 .event-cover::before { top: 30px; left: 42%; }

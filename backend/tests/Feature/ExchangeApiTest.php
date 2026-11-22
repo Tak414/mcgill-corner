@@ -80,6 +80,33 @@ class ExchangeApiTest extends TestCase
             ->assertUnprocessable()->assertJsonPath('error.code', 'OWN_CODE');
     }
 
+    /**
+     * With DEMO_MODE off the window is starts_at − 3h ≤ now ≤ ends_at: still open exactly at
+     * ends_at, closed one second later, and a pending pair is then never completed.
+     */
+    public function test_exchange_after_ends_at_returns_code_window_closed(): void
+    {
+        config(['app.demo_mode' => false]);
+        $this->travelTo('2026-11-21 20:00:00 UTC');
+        $event = Event::factory()->create(['starts_at' => now()->subHours(2), 'ends_at' => now()->addHour()]);
+        $caller = User::factory()->create();
+        $partner = User::factory()->create();
+        EventRsvp::factory()->create(['event_id' => $event->id, 'user_id' => $caller->id, 'code' => '1234']);
+        EventRsvp::factory()->create(['event_id' => $event->id, 'user_id' => $partner->id, 'code' => '5678']);
+
+        $this->travelTo('2026-11-21 21:00:00 UTC');
+        $this->actingAs($partner, 'sanctum')->postJson('/api/events/'.$event->id.'/exchange', ['code' => '1234'])
+            ->assertOk()->assertJsonPath('status', 'pending');
+
+        $this->travelTo('2026-11-21 21:00:01 UTC');
+        $this->actingAs($caller, 'sanctum')->postJson('/api/events/'.$event->id.'/exchange', ['code' => '5678'])
+            ->assertUnprocessable()->assertJsonPath('error.code', 'CODE_WINDOW_CLOSED');
+
+        $this->assertDatabaseHas('exchanges', ['event_id' => $event->id, 'completed_at' => null]);
+        $this->assertDatabaseHas('users', ['id' => $caller->id, 'points' => 0]);
+        $this->assertDatabaseHas('users', ['id' => $partner->id, 'points' => 0]);
+    }
+
     public function test_host_cannot_exchange_and_code_must_match_the_contract_shape(): void
     {
         config(['app.demo_mode' => true]);
