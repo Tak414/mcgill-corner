@@ -25,7 +25,7 @@ export function TopBar({ name, role, points, unlockedCount, onLogout }: TopBarPr
   return (
     <header className="topbar">
       <div className="topbar-brand"><span className="topbar-logo">U</span><span>UNLOCK</span></div>
-      <div className="topbar-stats"><span className="topbar-zones"><span className="status-dot" />{unlockedCount} zones open</span><span className="topbar-points"><span aria-hidden="true">✦</span>{points.toLocaleString()} pts</span></div>
+      <div className="topbar-stats"><span className="topbar-zones"><span className="status-dot" />{unlockedCount} {unlockedCount === 1 ? 'zone' : 'zones'} open</span><span className="topbar-points"><span aria-hidden="true">✦</span>{points.toLocaleString()} pts</span></div>
       <div className="topbar-account" ref={menuRef}>
         <button
           type="button"

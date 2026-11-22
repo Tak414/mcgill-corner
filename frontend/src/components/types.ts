@@ -49,6 +49,14 @@ export type FogMapProps = {
   events: EventSummary[];
   selectedEventId: number | null;
   onPinClick: (eventId: number) => void;
+  /** Zones just unlocked whose fog stays until their reveal plays (the player is still on the result screens). */
+  heldZoneIds?: number[];
+  /** Fly to this zone and slowly clear its fog; a new key plays it again. */
+  reveal?: { zoneId: number; key: number } | null;
+  /** The map has arrived at the zone and the fog starts to clear. */
+  onRevealStart?: (zoneId: number) => void;
+  /** The zone's fog is gone. */
+  onRevealEnd?: (zoneId: number) => void;
 };
 
 
@@ -78,7 +86,10 @@ export type ExchangeResultProps =
   | {
       status: 'completed';
       partnerName: string;
+      /** Everything this exchange earned, zone bonus included (the server's points_gained). */
       pointsGained: number;
+      /** The part of pointsGained that is the zone-unlock bonus; 0 when no zone opened. */
+      bonusPoints: number;
       zone: ZoneResult;
       totalPoints: number;
       onClose: () => void;
@@ -86,6 +97,16 @@ export type ExchangeResultProps =
 
 
 export type ZoneLabelProps = { zoneId: number };
+
+export type RankUpCelebrationProps = {
+  /** The new rank. */
+  rank: number;
+  /** Places gained. */
+  places: number;
+  /** The closest person above: points still needed to catch them; null when the viewer leads. */
+  nextGoal: { name: string; points: number } | null;
+  onDone: () => void;
+};
 
 export type UnlockCelebrationProps ={ zoneId: number; bonusPoints: number; onDone: () => void };
 
@@ -96,7 +117,14 @@ export type ToastItem = { id: string; message: string; variant: 'success' | 'inf
 export type ToastStackProps = { toasts: ToastItem[]; onDismiss: (id: string) => void };
 
 
-export type LeaderboardProps = { top: LeaderboardEntry[]; me: LeaderboardEntry | null };
+export type LeaderboardProps = {
+  top: LeaderboardEntry[];
+  me: LeaderboardEntry | null;
+  /** The viewer's rank the last time they looked; when it was worse, their row slides up to the new rank. */
+  previousRank?: number | null;
+  /** Called once when the viewer's row has finished sliding up, with the number of places gained. */
+  onRankUp?: (places: number) => void;
+};
 
 
 export type HostEventListProps = {

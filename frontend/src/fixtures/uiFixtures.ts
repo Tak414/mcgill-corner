@@ -102,6 +102,8 @@ export const top: LeaderboardEntry[] = [
 ];
 export const meOutsideTop: LeaderboardEntry = { rank: 24, user_id: 24, name: 'Jordan Lee', points: 420 };
 export const meInTop: LeaderboardEntry = { rank: 4, user_id: 3, name: 'Alex Chen', points: 2600 };
+export const meFirst: LeaderboardEntry = { rank: 1, user_id: 9, name: 'Léa Martin', points: 3400 };
+export const meNoPoints: LeaderboardEntry = { rank: 1, user_id: 3, name: 'Alex Chen', points: 0 };
 
 const hostEvent = (event: EventSummary, completed_exchange_count: number): HostEventSummary => ({ ...event, completed_exchange_count });
 export const hostEvents: HostEventSummary[] = [hostEvent(events[0], 14), hostEvent(events[2], 4)];
