@@ -1,7 +1,8 @@
-import { divIcon } from 'leaflet';
-import { MapContainer, Marker, Popup, Rectangle, TileLayer, Tooltip, ZoomControl } from 'react-leaflet';
+import { useState } from 'react';
+import { divIcon, type DivIcon } from 'leaflet';
+import { MapContainer, Marker, Pane, Popup, Rectangle, TileLayer, useMapEvents, ZoomControl } from 'react-leaflet';
 import { formatStart } from './time';
-import type { FogMapProps, EventSummary } from './types';
+import type { FogMapProps, EventSummary, ZoneProgress, Zones } from './types';
 
 const mcgill: [number, number] = [45.5048, -73.5772];
 
@@ -13,6 +14,47 @@ function eventIcon(event: EventSummary, selected: boolean) {
     iconSize: [42, 42],
     iconAnchor: [21, 21],
   });
+}
+
+/* Below this zoom a cell is too small on a phone for two lines of text. */
+const LABEL_MIN_ZOOM = 12;
+const labelIcons = new Map<string, DivIcon>();
+
+/** "Zone 36" / "Friends 0/1" while locked, "Zone 36" / "Friends 10" once unlocked. */
+function zoneLabelIcon(zoneId: number, friends: string, unlocked: boolean, size: 'sm' | 'md' | 'lg') {
+  const key = `${zoneId}|${friends}|${unlocked}|${size}`;
+  let icon = labelIcons.get(key);
+  if (!icon) {
+    icon = divIcon({
+      className: '',
+      html: `<div class="zone-label ${size}${unlocked ? ' open' : ''}"><span>Zone ${zoneId}</span><span>Friends ${friends}</span></div>`,
+      iconSize: [0, 0],
+    });
+    labelIcons.set(key, icon);
+  }
+  return icon;
+}
+
+/** Text inside every cell, so phones (no hover) can read each zone's progress. */
+function ZoneLabels({ zones, progressByZone }: { zones: Zones; progressByZone: Map<number, ZoneProgress> }) {
+  const [zoom, setZoom] = useState<number | null>(null);
+  const map = useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
+  const current = zoom ?? map.getZoom();
+  if (current < LABEL_MIN_ZOOM) return null;
+  const size = current >= 14 ? 'lg' : current === 13 ? 'md' : 'sm';
+
+  return (
+    <Pane name="zone-labels" style={{ zIndex: 450, pointerEvents: 'none' }}>
+      {zones.cells.map((cell) => {
+        const progress = progressByZone.get(cell.id);
+        const unlocked = progress?.unlocked === true;
+        const count = progress?.exchange_count ?? 0;
+        const friends = unlocked ? String(count) : `${count}/${cell.required_count}`;
+        const center: [number, number] = [(cell.bounds.south + cell.bounds.north) / 2, (cell.bounds.west + cell.bounds.east) / 2];
+        return <Marker key={cell.id} position={center} icon={zoneLabelIcon(cell.id, friends, unlocked, size)} interactive={false} keyboard={false} />;
+      })}
+    </Pane>
+  );
 }
 
 export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClick }: FogMapProps) {
@@ -42,11 +84,10 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
                 fillColor: unlocked ? '#79c6a1' : '#1a302e',
                 fillOpacity: unlocked ? 0.13 : 0.38,
               }}
-            >
-              <Tooltip sticky>{`Zone ${cell.id} · ${progress?.exchange_count ?? 0}/${cell.required_count}`}</Tooltip>
-            </Rectangle>
+            />
           );
         })}
+        <ZoneLabels zones={zones} progressByZone={progressByZone} />
         {events.map((event) => (
           <Marker
             key={event.id}
