@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { divIcon, latLngBounds, type DivIcon, type LatLngExpression } from 'leaflet';
 import { MapContainer, Marker, Pane, Polygon, Rectangle, TileLayer, useMap, useMapEvents, ZoomControl } from 'react-leaflet';
+import { CloudFogOverlay } from './CloudFogOverlay';
 import type { FogMapProps, EventSummary, ZoneProgress, Zones } from './types';
 import { zoneFullName, zoneShortName } from './zoneNames';
 
@@ -114,6 +115,19 @@ function ZoneLabels({ zones, progressByZone }: { zones: Zones; progressByZone: M
 export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClick }: FogMapProps) {
   const progressByZone = new Map(zoneProgress.map((progress) => [progress.zone_id, progress]));
   const unlockedCount = zoneProgress.filter((progress) => progress.unlocked).length;
+  const cloudZones = zones.cells.map((cell) => {
+    const progress = progressByZone.get(cell.id);
+    return {
+      id: cell.id,
+      bounds: [
+        [cell.bounds.south, cell.bounds.west],
+        [cell.bounds.north, cell.bounds.east],
+      ] as [[number, number], [number, number]],
+      completed: progress?.exchange_count ?? 0,
+      required: progress?.required_count ?? cell.required_count,
+      unlocked: progress?.unlocked === true,
+    };
+  });
 
   return (
     <div className="fog-map-wrap">
@@ -123,21 +137,19 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <GridOnly bounds={zones.bounds} rows={zones.rows} cols={zones.cols} />
+        <CloudFogOverlay zones={cloudZones} theme="shadow" />
         {/* top-left is taken by the progress card */}
         <ZoomControl position="bottomright" />
         {zones.cells.map((cell) => {
-          const progress = progressByZone.get(cell.id);
-          const unlocked = progress?.unlocked === true;
           return (
             <Rectangle
               key={cell.id}
               bounds={[[cell.bounds.south, cell.bounds.west], [cell.bounds.north, cell.bounds.east]]}
               pathOptions={{
-                color: unlocked ? '#288765' : '#213d39',
-                weight: unlocked ? 1.5 : 1,
-                opacity: unlocked ? 0.62 : 0.44,
-                fillColor: unlocked ? '#79c6a1' : '#1a302e',
-                fillOpacity: unlocked ? 0.13 : 0.38,
+                color: 'transparent',
+                weight: 0,
+                opacity: 0,
+                fillOpacity: 0,
               }}
             />
           );

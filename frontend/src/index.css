@@ -43,12 +43,123 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .event-marker { display: grid; width: 42px; height: 42px; place-items: center; border: 2px solid white; border-radius: 50%; background: #172421; color: white; box-shadow: 0 4px 14px rgba(18,34,29,.3); font-size: 13px; font-weight: 800; }
 .event-marker.selected { background: var(--unlock-accent); box-shadow: 0 0 0 5px rgba(22,125,98,.2), 0 4px 14px rgba(18,34,29,.25); }
 /* Zone labels drawn in the middle of each grid cell (FogMap ZoneLabels). */
-.zone-label { position: absolute; display: grid; transform: translate(-50%, -50%); justify-items: center; gap: 1px; white-space: nowrap; color: rgba(255,255,255,.92); font-weight: 750; line-height: 1.15; text-shadow: 0 1px 2px rgba(10,26,22,.75); pointer-events: none; }
-.zone-label span:first-child { font-weight: 850; letter-spacing: .02em; }
-.zone-label.sm { font-size: 8.5px; }
-.zone-label.md { font-size: 11px; }
-.zone-label.lg { font-size: 13px; }
-.zone-label.open { color: #0f5a43; text-shadow: 0 0 3px rgba(255,255,255,.95), 0 0 1px #fff; }
+.fog-map .zone-label,
+.zone-label {
+  position: absolute;
+  z-index: 400;
+  display: grid;
+  transform: translate(-50%, -50%);
+  justify-items: center;
+  gap: 1.5px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1.12;
+  /* 1. Default Locked State: Mint Glow + Deep Forest Outline */
+  color: #f3fbf7 !important;
+  -webkit-text-stroke: 0.35px rgba(10, 26, 22, 0.85);
+  paint-order: stroke fill;
+  text-shadow:
+    0 1px 2px rgba(10, 26, 22, 0.98),
+    0 0 4px rgba(10, 26, 22, 0.95),
+    0 0 9px rgba(10, 26, 22, 0.8) !important;
+  pointer-events: none;
+  user-select: none;
+  transition: color 0.35s ease, text-shadow 0.35s ease, opacity 0.35s ease;
+}
+
+.fog-map .zone-label span:first-child,
+.zone-label span:first-child {
+  font-size: 0.86em;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7ee2b4 !important; /* Richer seafoam-mint so it clearly reads green */
+}
+
+.fog-map .zone-label span:last-child,
+.zone-label span:last-child {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #f3fbf7 !important;
+}
+
+.zone-label.sm {
+  font-size: 8.5px;
+}
+
+.zone-label.md {
+  font-size: 11px;
+}
+
+.zone-label.lg {
+  font-size: 13px;
+}
+
+/* 2. Optional Theme: Warm Cream + Gold & Espresso Pine */
+.fog-map .zone-label.theme-warm,
+.zone-label.theme-warm {
+  color: #fff7e6 !important;
+  text-shadow:
+    0 1px 2px rgba(14, 34, 28, 0.98),
+    0 0 4px rgba(14, 34, 28, 0.95),
+    0 0 9px rgba(14, 34, 28, 0.8) !important;
+}
+
+.fog-map .zone-label.theme-warm span:first-child,
+.zone-label.theme-warm span:first-child {
+  color: #f5d38d !important;
+}
+
+.fog-map .zone-label.theme-warm span:last-child,
+.zone-label.theme-warm span:last-child {
+  color: #fff7e6 !important;
+}
+
+/* 3. Optional Theme: Coral Peach + Deep Forest Outline */
+.fog-map .zone-label.theme-coral,
+.zone-label.theme-coral {
+  color: #fffefa !important;
+  text-shadow:
+    0 1px 2px rgba(10, 26, 22, 0.98),
+    0 0 4px rgba(10, 26, 22, 0.95),
+    0 0 9px rgba(10, 26, 22, 0.8) !important;
+}
+
+.fog-map .zone-label.theme-coral span:first-child,
+.zone-label.theme-coral span:first-child {
+  color: #ff9e7d !important;
+}
+
+.fog-map .zone-label.theme-coral span:last-child,
+.zone-label.theme-coral span:last-child {
+  color: #fffefa !important;
+}
+
+/* 4. Unlocked Zones (.open): Deep Forest + Warm Paper Halo */
+.fog-map .zone-label.open,
+.fog-map .zone-label.open span:first-child,
+.fog-map .zone-label.open span:last-child,
+.zone-label.open,
+.zone-label.open span:first-child,
+.zone-label.open span:last-child {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--unlock-accent-dark, #105843) !important;
+  -webkit-text-stroke: 0.35px rgba(255, 254, 250, 0.9);
+  paint-order: stroke fill;
+  text-shadow:
+    0 0 3px rgba(255, 254, 250, 0.98),
+    0 0 6px rgba(255, 254, 250, 0.95),
+    0 1px 2px rgba(255, 254, 250, 0.9) !important;
+}
 
 .gallery-shell { min-height: 100vh; padding: 30px 22px 70px; background: radial-gradient(ellipse at 12% 4%, #dceee6 0, transparent 35%), #f1f5f2; }
 .gallery-head { width: min(100%, 1080px); margin: 0 auto 20px; display: flex; align-items: end; justify-content: space-between; gap: 16px; }

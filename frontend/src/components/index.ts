@@ -2,6 +2,7 @@ export { AuthForm } from './AuthForm';
 export { TopBar } from './TopBar';
 export { BottomTabs } from './BottomTabs';
 export { FogMap } from './FogMap';
+export { CloudFogOverlay } from './CloudFogOverlay';
 export { CodeInput } from './CodeInput';
 export { EventSheet } from './EventSheet';
 export { ExchangeResult } from './ExchangeResult';
