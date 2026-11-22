@@ -155,7 +155,7 @@ export function FogMap({ zones, zoneProgress, events, selectedEventId, onPinClic
       </MapContainer>
       <div className="map-progress-card">
         <div><span className="map-eyebrow">Your map</span><strong>{unlockedCount} zones open</strong></div>
-        {zoneProgress.length > 0 ? <div className="map-progress-list">{zoneProgress.slice(0, 4).map((progress) => <span key={progress.zone_id} className={progress.unlocked ? 'open' : ''} title={`${zoneFullName(progress.zone_id)} (Zone ${progress.zone_id})`}>{zoneShortName(progress.zone_id)} <b>{progress.exchange_count}/{zones.cells[progress.zone_id]?.required_count ?? '—'}</b></span>)}</div> : <span className="map-progress-empty">Meet someone to begin clearing the fog.</span>}
+        <span className="map-progress-empty">Meet someone to begin clearing the fog.</span>
       </div>
       <div className="map-compass" aria-hidden="true">N <span>↑</span></div>
     </div>
