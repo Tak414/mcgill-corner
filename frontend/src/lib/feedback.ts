@@ -8,7 +8,7 @@
  * unlock: bigger four-note fanfare · reveal: a slow rising shimmer while the fog lifts ·
  * open: the final chord when the zone is clear · tap: a tiny haptic on button presses.
  */
-export type FeedbackKind = 'pending' | 'meet' | 'unlock' | 'reveal' | 'open' | 'tap';
+export type FeedbackKind = 'pending' | 'meet' | 'unlock' | 'reveal' | 'open' | 'tap' | 'rankup';
 
 /* [frequency Hz, start offset s, duration s] */
 const TONES: Record<FeedbackKind, Array<[number, number, number]>> = {
@@ -22,6 +22,8 @@ const TONES: Record<FeedbackKind, Array<[number, number, number]>> = {
   ],
   open: [[523.25, 0, 0.9], [659.25, 0, 0.9], [783.99, 0, 0.9], [1046.5, 0.12, 1.1]],
   tap: [],
+  // Quick "whoosh up" of four notes for moving up the leaderboard.
+  rankup: [[392, 0, 0.12], [523.25, 0.07, 0.12], [659.25, 0.14, 0.14], [1046.5, 0.22, 0.4]],
 };
 const VIBRATION: Record<FeedbackKind, number | number[]> = {
   pending: 15,
@@ -31,8 +33,9 @@ const VIBRATION: Record<FeedbackKind, number | number[]> = {
   reveal: [20, 260, 20, 200, 25, 150, 30, 110, 35, 80, 45],
   open: [80, 60, 140],
   tap: 8,
+  rankup: [15, 30, 15, 30, 70],
 };
-const VOLUME: Record<FeedbackKind, number> = { pending: 0.12, meet: 0.16, unlock: 0.16, reveal: 0.07, open: 0.11, tap: 0 };
+const VOLUME: Record<FeedbackKind, number> = { pending: 0.12, meet: 0.16, unlock: 0.16, reveal: 0.07, open: 0.11, tap: 0, rankup: 0.14 };
 
 let context: AudioContext | null = null;
 

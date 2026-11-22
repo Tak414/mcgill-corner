@@ -74,6 +74,7 @@ export function Gallery() {
     { id: 'toasts', label: 'ToastStack · all variants', render: () => <ToastStack toasts={shownToasts} onDismiss={(id) => setShownToasts((current) => current.filter((toast) => toast.id !== id))} /> },
     { id: 'leaderboard-top', label: 'Leaderboard · tied ranks, me in top 20', render: () => <Leaderboard top={top} me={meInTop} /> },
     { id: 'leaderboard-outside', label: 'Leaderboard · me outside top 20', render: () => <Leaderboard top={top} me={meOutsideTop} /> },
+    { id: 'leaderboard-rankup', label: 'Leaderboard · rank-up from #9 to #4', render: () => <Leaderboard top={top} me={meInTop} previousRank={9} /> },
     { id: 'leaderboard-first', label: 'Leaderboard · me tied at #1', render: () => <Leaderboard top={top} me={meFirst} /> },
     { id: 'leaderboard-empty', label: 'Leaderboard · nobody has points yet', render: () => <Leaderboard top={[]} me={meNoPoints} /> },
     { id: 'host-events', label: 'HostEventList · populated', render: () => <HostEventList events={hostEvents} onCreate={noOp} onSelect={noOp} /> },

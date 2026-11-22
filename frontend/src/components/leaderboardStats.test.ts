@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { rankTier, shareOfTop, summarize } from './leaderboardStats';
+import { boardBeforeRankUp, condenseBoard, rankTier, shareOfTop, summarize } from './leaderboardStats';
 
 const entry = (rank: number, user_id: number, points: number) => ({ rank, user_id, name: `U${user_id}`, points });
 
@@ -38,5 +38,38 @@ describe('leaderboard summary', () => {
 
   it('gives no medals while nobody has points (everyone ties at #1)', () => {
     expect(rankTier(1, 0)).toBe('rest');
+  });
+});
+
+describe('condensed board', () => {
+  const board = Array.from({ length: 20 }, (_, i) => entry(i + 1, 100 + i, 2000 - i * 50));
+  const shown = (rows: ReturnType<typeof condenseBoard>) =>
+    rows.map((r) => (r.kind === 'entry' ? r.entry.rank : `…${r.hidden}`));
+
+  it('shows the podium and two people either side of the viewer', () => {
+    expect(shown(condenseBoard(board, board[9]))).toEqual([1, 2, 3, '…4', 8, 9, 10, 11, 12, '…8']);
+  });
+
+  it('joins the podium and the viewer when they touch', () => {
+    expect(shown(condenseBoard(board, board[3]))).toEqual([1, 2, 3, 4, 5, 6, '…14']);
+    expect(shown(condenseBoard(board, board[0]))).toEqual([1, 2, 3, '…17']);
+  });
+
+  it('puts a viewer outside the top 20 after a gap', () => {
+    expect(shown(condenseBoard(board, entry(24, 999, 10)))).toEqual([1, 2, 3, '…20', 24]);
+  });
+
+  it('keeps short boards whole', () => {
+    expect(shown(condenseBoard(board.slice(0, 4), board[3]))).toEqual([1, 2, 3, 4]);
+  });
+
+  it('places the viewer back at the old rank for the rank-up animation', () => {
+    const me = board[3]; // now 4th, was 9th
+    const before = boardBeforeRankUp(board, me, 9);
+    expect(before.top.findIndex((e) => e.user_id === me.user_id)).toBe(8);
+    expect(before.me.rank).toBe(9);
+    expect(before.top).toHaveLength(20);
+    // The people passed were one place higher before: no duplicate ranks around the old spot.
+    expect(before.top.slice(3, 10).map((e) => e.rank)).toEqual([4, 5, 6, 7, 8, 9, 10]);
   });
 });

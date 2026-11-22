@@ -482,3 +482,21 @@ button.topbar-avatar:focus-visible { outline: 3px solid rgba(22,125,98,.35); out
   .result-points, .zone-label.just-opened, .count-bump { animation: none; }
   .result-progress .result-progress-fill { animation: none; }
 }
+
+/* Condensed leaderboard: "⋯ 12 more explorers" between the podium and the viewer's neighbours. */
+.leaderboard-gap { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 4px 0; color: #9aa69f; font-size: .72rem; font-weight: 750; }
+.leaderboard-gap span { color: #b6c0ba; font-size: 1.1rem; letter-spacing: .1em; }
+/* Rank-up: the viewer's row slides over the others, glows, and shows "▲ N". */
+.leaderboard-row { position: relative; }
+.leaderboard-row.is-me { z-index: 1; }
+.leaderboard-row.just-climbed { animation: climb-glow 1600ms ease-out both; }
+@keyframes climb-glow {
+  0% { box-shadow: 0 0 0 0 rgba(242,198,109,.0), 0 6px 18px rgba(22,125,98,.12); }
+  35% { box-shadow: 0 0 0 4px rgba(242,198,109,.65), 0 10px 26px rgba(22,125,98,.22); }
+  100% { box-shadow: 0 0 0 0 rgba(242,198,109,0), 0 6px 18px rgba(22,125,98,.12); }
+}
+.rank-climb { flex: 0 0 auto; padding: 3px 7px; border-radius: 999px; background: #fff2d7; color: #9f711b; font-size: .62rem; font-weight: 900; animation: points-pop 520ms cubic-bezier(.2,1.4,.4,1) 300ms both; }
+.leaderboard-emblem.just-climbed { animation: count-bump 700ms cubic-bezier(.2,1.6,.4,1) 250ms both; }
+@media (prefers-reduced-motion: reduce) {
+  .leaderboard-row.just-climbed, .rank-climb, .leaderboard-emblem.just-climbed { animation: none; }
+}

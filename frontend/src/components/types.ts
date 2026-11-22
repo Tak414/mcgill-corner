@@ -107,7 +107,14 @@ export type ToastItem = { id: string; message: string; variant: 'success' | 'inf
 export type ToastStackProps = { toasts: ToastItem[]; onDismiss: (id: string) => void };
 
 
-export type LeaderboardProps = { top: LeaderboardEntry[]; me: LeaderboardEntry | null };
+export type LeaderboardProps = {
+  top: LeaderboardEntry[];
+  me: LeaderboardEntry | null;
+  /** The viewer's rank the last time they looked; when it was worse, their row slides up to the new rank. */
+  previousRank?: number | null;
+  /** Called once when the rank-up animation plays, with the number of places gained. */
+  onRankUp?: (places: number) => void;
+};
 
 
 export type HostEventListProps = {
