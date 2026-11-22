@@ -1,4 +1,5 @@
 import type { ExchangeResultProps } from './types';
+import { ZoneLabel } from './ZoneLabel';
 
 export function ExchangeResult(props: ExchangeResultProps) {
   const complete = props.status === 'completed';
@@ -11,7 +12,7 @@ export function ExchangeResult(props: ExchangeResultProps) {
         <h2 id="result-title">{complete ? `You met ${props.partnerName}!` : `Waiting for ${props.partnerName}`}</h2>
         {complete ? <>
           <div className="result-points">+{props.pointsGained}<span>points</span></div>
-          <div className="result-zone"><div><span>Zone {props.zone.zone_id}</span><strong>{props.zone.exchange_count}/{props.zone.required_count} meetups</strong></div><div className="result-progress"><span style={{ width: `${Math.min(100, (props.zone.exchange_count / props.zone.required_count) * 100)}%` }} /></div></div>
+          <div className="result-zone"><div><span><ZoneLabel zoneId={props.zone.zone_id} /></span><strong>{props.zone.exchange_count}/{props.zone.required_count} meetups</strong></div><div className="result-progress"><span style={{ width: `${Math.min(100, (props.zone.exchange_count / props.zone.required_count) * 100)}%` }} /></div></div>
           {props.zone.unlocked_now && <p className="result-unlocked"><span aria-hidden="true">✧</span> You cleared the fog in this zone</p>}
           <p className="result-total">Your new balance <strong>{props.totalPoints.toLocaleString()} pts</strong></p>
         </> : <>

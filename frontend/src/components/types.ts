@@ -85,7 +85,9 @@ export type ExchangeResultProps =
     };
 
 
-export type UnlockCelebrationProps = { zoneId: number; bonusPoints: number; onDone: () => void };
+export type ZoneLabelProps = { zoneId: number };
+
+export type UnlockCelebrationProps ={ zoneId: number; bonusPoints: number; onDone: () => void };
 
 
 export type ToastItem = { id: string; message: string; variant: 'success' | 'info' | 'error' };

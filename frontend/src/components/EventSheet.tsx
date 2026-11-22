@@ -1,4 +1,5 @@
 import { CodeInput } from './CodeInput';
+import { ZoneLabel } from './ZoneLabel';
 import { formatStart, formatWindow } from './time';
 import type { EventSheetProps } from './types';
 
@@ -11,7 +12,7 @@ export function EventSheet({ event, viewerRole, isSubmitting, errorMessage, onRs
         <div className="sheet-handle" aria-hidden="true" />
         <button className="sheet-close" type="button" onClick={onClose} aria-label="Close event details">×</button>
         <div className="sheet-scroll">
-          <div className="event-cover"><span className="event-cover-mark">U</span><span className="event-cover-zone">ZONE {event.zone_id}</span><span className="event-cover-orbit orbit-one" /><span className="event-cover-orbit orbit-two" /></div>
+          <div className="event-cover"><span className="event-cover-mark">U</span><span className="event-cover-zone"><ZoneLabel zoneId={event.zone_id} /></span><span className="event-cover-orbit orbit-one" /><span className="event-cover-orbit orbit-two" /></div>
           <div className="event-sheet-main">
             <div className="event-title-row"><div><p className="ui-kicker">{event.location_name}</p><h2 id="event-sheet-title">{event.title}</h2></div><span className={`window-pill ${event.code_window}`}>{event.code_window}</span></div>
             <p className="event-sheet-desc">{event.description}</p>
