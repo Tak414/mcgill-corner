@@ -42,6 +42,13 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .leaflet-control-attribution { font-size: 9px !important; }
 .event-marker { display: grid; width: 42px; height: 42px; place-items: center; border: 2px solid white; border-radius: 50%; background: #172421; color: white; box-shadow: 0 4px 14px rgba(18,34,29,.3); font-size: 13px; font-weight: 800; }
 .event-marker.selected { background: var(--unlock-accent); box-shadow: 0 0 0 5px rgba(22,125,98,.2), 0 4px 14px rgba(18,34,29,.25); }
+/* Zone labels drawn in the middle of each grid cell (FogMap ZoneLabels). */
+.zone-label { position: absolute; display: grid; transform: translate(-50%, -50%); justify-items: center; gap: 1px; white-space: nowrap; color: rgba(255,255,255,.92); font-weight: 750; line-height: 1.15; text-shadow: 0 1px 2px rgba(10,26,22,.75); pointer-events: none; }
+.zone-label span:first-child { font-weight: 850; letter-spacing: .02em; }
+.zone-label.sm { font-size: 8.5px; }
+.zone-label.md { font-size: 11px; }
+.zone-label.lg { font-size: 13px; }
+.zone-label.open { color: #0f5a43; text-shadow: 0 0 3px rgba(255,255,255,.95), 0 0 1px #fff; }
 
 .gallery-shell { min-height: 100vh; padding: 30px 22px 70px; background: radial-gradient(ellipse at 12% 4%, #dceee6 0, transparent 35%), #f1f5f2; }
 .gallery-head { width: min(100%, 1080px); margin: 0 auto 20px; display: flex; align-items: end; justify-content: space-between; gap: 16px; }

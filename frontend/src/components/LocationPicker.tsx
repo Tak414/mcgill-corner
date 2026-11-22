@@ -53,6 +53,13 @@ export function LocationPicker({ value, onChange, onSearch, isSearching, searchE
     }
   }
 
+  // A tapped or dragged pin no longer matches the searched text, so clear it.
+  // (No reverse geocoding: Nominatim is called only on a Search press.)
+  function placeManually(point: LatLng) {
+    setQuery('');
+    onChange(point);
+  }
+
   function searchOnEnter(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key !== 'Enter') return;
     event.preventDefault(); // Enter here must search, not submit the surrounding event form
@@ -70,8 +77,8 @@ export function LocationPicker({ value, onChange, onSearch, isSearching, searchE
         <MapContainer className="location-map" center={[mapCenter.lat, mapCenter.lng]} zoom={14} scrollWheelZoom aria-label="Tap or drag to place the event pin">
           <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <MapUpdater value={value} />
-          <ClickToPlace onChange={onChange} />
-          {value && <DragPin value={value} onChange={onChange} />}
+          <ClickToPlace onChange={placeManually} />
+          {value && <DragPin value={value} onChange={placeManually} />}
         </MapContainer>
         <span className="location-map-hint">Tap map to drop a pin · drag to adjust</span>
       </div>
