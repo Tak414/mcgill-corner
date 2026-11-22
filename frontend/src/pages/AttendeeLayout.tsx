@@ -4,6 +4,7 @@ import { BottomTabs, ExchangeResult, ToastStack, TopBar, UnlockCelebration } fro
 import type { ToastItem } from '../components';
 import { useAuth } from '../auth';
 import { useExchangeFeed, useFetchMeNow, useMe, useZones, type ExchangeSummary } from '../hooks';
+import { zoneShortName } from '../components';
 import { feedback, primeFeedback } from '../lib/feedback';
 import type { AttendeeShellContext } from './attendeeContext';
 import { queueResult, type NewResultMoment, type ResultMoment } from './exchangeMoments';
@@ -63,11 +64,20 @@ export function AttendeeLayout() {
   const nextMomentId = useRef(0);
   const [results, setResults] = useState<ResultMoment[]>([]);
   const [celebrations, setCelebrations] = useState<Array<{ id: number; zoneId: number }>>([]);
+  // A zone that just opened keeps its fog until the player has seen the card and the celebration;
+  // then the map flies there and clears it (reveal).
+  const [heldZoneIds, setHeldZoneIds] = useState<number[]>([]);
+  const [reveal, setReveal] = useState<{ zoneId: number; key: number } | null>(null);
+  const holdFog = useCallback((zoneId: number) => setHeldZoneIds((ids) => (ids.includes(zoneId) ? ids : [...ids, zoneId])), []);
 
-  const showResult = useCallback((moment: NewResultMoment) => {
-    const id = nextMomentId.current++;
-    setResults((queue) => queueResult(queue, moment, id));
-  }, []);
+  const showResult = useCallback(
+    (moment: NewResultMoment) => {
+      if (moment.status === 'completed' && moment.zone.unlocked_now) holdFog(moment.zone.zone_id);
+      const id = nextMomentId.current++;
+      setResults((queue) => queueResult(queue, moment, id));
+    },
+    [holdFog],
+  );
 
   const closeResult = useCallback(() => {
     const first = results[0];
@@ -77,11 +87,40 @@ export function AttendeeLayout() {
     }
     setResults((queue) => queue.slice(1));
   }, [results]);
-  const finishCelebration = useCallback(() => setCelebrations((q) => q.slice(1)), []);
+  const finishCelebration = useCallback(() => {
+    const done = celebrations[0];
+    setCelebrations((q) => q.slice(1));
+    if (done === undefined) return;
+    setReveal({ zoneId: done.zoneId, key: nextMomentId.current++ });
+    if (location.pathname !== '/') navigate('/');
+  }, [celebrations, location.pathname, navigate]);
+
+  const onRevealStart = useCallback(() => feedback('reveal'), []);
+  const onRevealEnd = useCallback(
+    (zoneId: number) => {
+      setHeldZoneIds((ids) => ids.filter((id) => id !== zoneId));
+      setReveal((current) => (current?.zoneId === zoneId ? null : current));
+      feedback('open');
+      const open = (me.data?.zone_progress.filter((z) => z.unlocked).length ?? 0) || 1;
+      showToast(`${zoneShortName(zoneId)} is open · ${open} ${open === 1 ? 'zone' : 'zones'} explored. Where next?`);
+    },
+    [me.data, showToast],
+  );
+  // Safety net: never leave a zone's fog held if the map could not play the reveal.
+  useEffect(() => {
+    if (reveal === null) return;
+    const zoneId = reveal.zoneId;
+    const timer = setTimeout(() => {
+      setHeldZoneIds((ids) => ids.filter((id) => id !== zoneId));
+      setReveal((current) => (current?.zoneId === zoneId ? null : current));
+    }, 12_000);
+    return () => clearTimeout(timer);
+  }, [reveal]);
 
   // The partner completed an exchange we started: same "You met …" card as theirs.
   const onExchange = useCallback(
     (ex: ExchangeSummary) => {
+      if (ex.unlocked_now) holdFog(ex.zone_id);
       fetchMeNow().then(
         (fresh) => {
           const progress = fresh.zone_progress.find((z) => z.zone_id === ex.zone_id);
@@ -105,7 +144,7 @@ export function AttendeeLayout() {
         () => showToast(`You met ${ex.partner.name}! +${ex.points_gained}`),
       );
     },
-    [fetchMeNow, showResult, showToast],
+    [fetchMeNow, holdFog, showResult, showToast],
   );
   useExchangeFeed(user?.role === 'attendee' ? user.id : null, onExchange);
 
@@ -129,7 +168,10 @@ export function AttendeeLayout() {
     navigate('/login', { replace: true });
   }
 
-  const shell = useMemo<AttendeeShellContext>(() => ({ showToast, showResult }), [showToast, showResult]);
+  const shell = useMemo<AttendeeShellContext>(
+    () => ({ showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd }),
+    [showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd],
+  );
 
   const unlockedCount = me.data?.zone_progress.filter((z) => z.unlocked).length ?? 0;
   const activeTab = location.pathname === '/leaderboard' ? 'leaderboard' : 'map';

@@ -5,7 +5,7 @@ import { useCancelRsvp, useEvent, useEvents, useExchange, useMe, useRsvp, useZon
 import { useAttendeeShell } from './attendeeContext';
 
 export function MapPage() {
-  const { showToast, showResult } = useAttendeeShell();
+  const { showToast, showResult, heldZoneIds, reveal, onRevealStart, onRevealEnd } = useAttendeeShell();
   const zones = useZones();
   const events = useEvents();
   const me = useMe();
@@ -26,6 +26,12 @@ export function MapPage() {
       setSelectedId(null);
     }
   }, [selectedId, event.isError, event.data, event.error, showToast]);
+
+  // When a zone's fog starts to lift, get the event sheet out of the way so the map is visible.
+  const revealKey = reveal?.key ?? null;
+  useEffect(() => {
+    if (revealKey !== null) setSelectedId(null);
+  }, [revealKey]);
 
   function selectEvent(id: number | null) {
     setSelectedId(id);
@@ -80,6 +86,10 @@ export function MapPage() {
         events={events.data ?? []}
         selectedEventId={selectedId}
         onPinClick={selectEvent}
+        heldZoneIds={heldZoneIds}
+        reveal={reveal}
+        onRevealStart={onRevealStart}
+        onRevealEnd={onRevealEnd}
       />
       {selectedId !== null && event.data && (
         <EventSheet

@@ -12,6 +12,8 @@ export interface FogZoneInput {
 interface CloudFogOverlayProps {
   zones: FogZoneInput[];
   theme?: 'shadow' | 'mist';
+  /** How long the fog takes to clear when a zone turns unlocked (ms). */
+  revealMs?: number;
 }
 
 interface PuffSeed {
@@ -113,6 +115,14 @@ function getZoneFogRemaining(zone: FogZoneInput): number {
   return 1 - progress;
 }
 
+/** Density actually on screen: during a reveal it fades with the same easing as the puffs. */
+function visibleThin(zone: FogZoneInput, state: ZoneRuntimeState, now: number, revealMs = 1350): number {
+  if (!zone.unlocked) return state.thinFactor;
+  if (state.unlockStartMs === null) return state.thinFactor;
+  const p = Math.min(1, (now - state.unlockStartMs) / revealMs);
+  return state.thinFactor * (1 - p);
+}
+
 function createCloudSprite(theme: 'shadow' | 'mist'): HTMLCanvasElement {
   const size = 160;
   const half = size / 2;
@@ -197,7 +207,12 @@ function makePuffsForZone(zoneId: number): PuffSeed[] {
 export const CloudFogOverlay: React.FC<CloudFogOverlayProps> = ({
   zones,
   theme = 'shadow',
+  revealMs = 1350,
 }) => {
+  const revealMsRef = useRef(revealMs);
+  useEffect(() => {
+    revealMsRef.current = revealMs;
+  }, [revealMs]);
   const map = useMap();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const zonesRef = useRef<FogZoneInput[]>(zones);
@@ -314,14 +329,18 @@ export const CloudFogOverlay: React.FC<CloudFogOverlayProps> = ({
             stateMapRef.current.set(zone.id, entry);
           }
 
-          entry.thinFactor += (targetThin - entry.thinFactor) * 0.1;
+          const revealing = zone.unlocked && entry.unlockStartMs !== null;
+          if (!revealing) entry.thinFactor += (targetThin - entry.thinFactor) * 0.1;
 
           let revealProgress = 0;
           if (zone.unlocked) {
             if (entry.unlockStartMs !== null) {
               const elapsed = now - entry.unlockStartMs;
-              revealProgress = Math.min(1, elapsed / 1350);
-              if (revealProgress >= 1) entry.unlockStartMs = null;
+              revealProgress = Math.min(1, elapsed / revealMsRef.current);
+              if (revealProgress >= 1) {
+                entry.unlockStartMs = null;
+                entry.thinFactor = 0;
+              }
             } else {
               revealProgress = 1;
             }
@@ -346,8 +365,11 @@ export const CloudFogOverlay: React.FC<CloudFogOverlayProps> = ({
             continue;
           }
 
-          const easeOut = 1 - Math.pow(1 - revealProgress, 3);
-          const dispersePx = easeOut * 64 + (1 - entry.thinFactor) * 16;
+          const easeOut =
+            revealProgress < 0.5
+              ? 4 * revealProgress * revealProgress * revealProgress
+              : 1 - Math.pow(-2 * revealProgress + 2, 3) / 2;
+          const dispersePx = easeOut * Math.max(64, Math.min(boxW, boxH) * 0.45) + (1 - entry.thinFactor) * 16;
 
           for (const puff of entry.puffs) {
             const alpha = (1 - easeOut) * puff.wispyFactor * entry.thinFactor;
@@ -375,7 +397,7 @@ export const CloudFogOverlay: React.FC<CloudFogOverlayProps> = ({
           const secondState = stateMapRef.current.get(bridge.secondZoneId);
           if (!firstZone || !secondZone || !firstState || !secondState) continue;
 
-          const strength = (firstState.thinFactor + secondState.thinFactor) / 2;
+          const strength = (visibleThin(firstZone, firstState, now, revealMsRef.current) + visibleThin(secondZone, secondState, now, revealMsRef.current)) / 2;
           if (strength <= 0.01) continue;
 
           const point = map.latLngToLayerPoint(bridge.position).subtract(layerOrigin);

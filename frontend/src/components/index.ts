@@ -12,6 +12,7 @@ export { Leaderboard } from './Leaderboard';
 export { HostEventList } from './HostEventList';
 export { LocationPicker } from './LocationPicker';
 export { EventForm } from './EventForm';
+export { zoneShortName, zoneFullName } from './zoneNames';
 export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, CodeInputProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps, HostEventListProps, LocationPickerProps, EventFormProps } from './types';
 
 export type {

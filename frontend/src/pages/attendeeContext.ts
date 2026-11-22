@@ -9,6 +9,12 @@ export type AttendeeShellContext = {
    * unlock celebration follows its card once the card is closed.
    */
   showResult: (moment: NewResultMoment) => void;
+  /** Zones just unlocked whose fog stays until their reveal plays. */
+  heldZoneIds: number[];
+  /** The zone the map should fly to and clear now (after "Keep exploring"). */
+  reveal: { zoneId: number; key: number } | null;
+  onRevealStart: (zoneId: number) => void;
+  onRevealEnd: (zoneId: number) => void;
 };
 
 export function useAttendeeShell(): AttendeeShellContext {

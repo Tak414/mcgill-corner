@@ -49,6 +49,14 @@ export type FogMapProps = {
   events: EventSummary[];
   selectedEventId: number | null;
   onPinClick: (eventId: number) => void;
+  /** Zones just unlocked whose fog stays until their reveal plays (the player is still on the result screens). */
+  heldZoneIds?: number[];
+  /** Fly to this zone and slowly clear its fog; a new key plays it again. */
+  reveal?: { zoneId: number; key: number } | null;
+  /** The map has arrived at the zone and the fog starts to clear. */
+  onRevealStart?: (zoneId: number) => void;
+  /** The zone's fog is gone. */
+  onRevealEnd?: (zoneId: number) => void;
 };
 
 

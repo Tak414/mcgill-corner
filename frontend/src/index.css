@@ -412,3 +412,73 @@ button.topbar-avatar:focus-visible { outline: 3px solid rgba(22,125,98,.35); out
 
 /* "+200 bonus" next to "You cleared the fog in this zone" on the result card. */
 .result-bonus { margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: #fff2d7; color: #9f711b; font-size: .75rem; font-weight: 850; }
+
+/* ---------- exchange & unlock moments ---------- */
+/* Result card: the zone bar fills from before → after this meetup. */
+.result-progress .result-progress-fill { width: var(--to); animation: progress-fill 900ms cubic-bezier(.2,.8,.2,1) 350ms both; }
+@keyframes progress-fill { from { width: var(--from); } to { width: var(--to); } }
+.result-points { animation: points-pop 520ms cubic-bezier(.2,1.4,.4,1) 120ms both; }
+@keyframes points-pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.result-next { margin: 12px 0 0; color: var(--unlock-muted); font-size: .8rem; font-weight: 750; }
+.result-next::before { content: '→ '; color: var(--unlock-accent); }
+
+/* Confetti burst from the card's symbol. */
+.confetti { position: absolute; inset: 50% auto auto 50%; width: 0; height: 0; pointer-events: none; }
+.confetti i { position: absolute; width: 7px; height: 11px; border-radius: 2px; opacity: 0; animation: confetti-burst 1100ms cubic-bezier(.15,.7,.3,1) 120ms both; }
+.confetti i:nth-child(4n+1) { background: #f2c66d; }
+.confetti i:nth-child(4n+2) { background: var(--unlock-accent); }
+.confetti i:nth-child(4n+3) { background: #e48767; }
+.confetti i:nth-child(4n+4) { background: #9fd0b5; }
+.confetti i:nth-child(1) { --x: -78px; --y: -70px; --r: -160deg; }
+.confetti i:nth-child(2) { --x: 82px; --y: -64px; --r: 200deg; }
+.confetti i:nth-child(3) { --x: -96px; --y: -12px; --r: 120deg; }
+.confetti i:nth-child(4) { --x: 98px; --y: -18px; --r: -140deg; }
+.confetti i:nth-child(5) { --x: -54px; --y: -96px; --r: 260deg; }
+.confetti i:nth-child(6) { --x: 50px; --y: -100px; --r: -220deg; }
+.confetti i:nth-child(7) { --x: -110px; --y: 30px; --r: 90deg; }
+.confetti i:nth-child(8) { --x: 112px; --y: 24px; --r: -80deg; }
+.confetti i:nth-child(9) { --x: -20px; --y: -112px; --r: 300deg; }
+.confetti i:nth-child(10) { --x: 24px; --y: -114px; --r: -300deg; }
+.confetti i:nth-child(11) { --x: -72px; --y: 56px; --r: 180deg; }
+.confetti i:nth-child(12) { --x: 74px; --y: 60px; --r: -180deg; }
+.confetti i:nth-child(13) { --x: -128px; --y: -40px; --r: 240deg; }
+.confetti i:nth-child(14) { --x: 126px; --y: -44px; --r: -240deg; }
+.confetti i:nth-child(15) { --x: -36px; --y: 84px; --r: 140deg; }
+.confetti i:nth-child(16) { --x: 38px; --y: 86px; --r: -140deg; }
+.confetti i:nth-child(17) { --x: -140px; --y: 8px; --r: 330deg; }
+.confetti i:nth-child(18) { --x: 142px; --y: 4px; --r: -330deg; }
+.confetti i:nth-child(19) { --x: -92px; --y: -108px; --r: 210deg; }
+.confetti i:nth-child(20) { --x: 94px; --y: -106px; --r: -210deg; }
+@keyframes confetti-burst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.4) rotate(0); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y) + 40px)) scale(1) rotate(var(--r)); }
+}
+
+/* Map reveal: gold outline breathes while the fog drifts away, the label pops, the count bumps. */
+.zone-reveal-glow { animation: zone-glow 5200ms ease-out forwards; }
+@keyframes zone-glow {
+  0% { stroke-opacity: 0; fill-opacity: 0; }
+  10% { stroke-opacity: 1; fill-opacity: .28; }
+  30% { stroke-opacity: .55; fill-opacity: .12; }
+  50% { stroke-opacity: 1; fill-opacity: .22; }
+  75% { stroke-opacity: .7; fill-opacity: .1; }
+  100% { stroke-opacity: 0; fill-opacity: 0; }
+}
+.zone-label.just-opened { animation: label-pop 900ms cubic-bezier(.2,1.5,.4,1) 2200ms both; }
+@keyframes label-pop {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  45% { transform: translate(-50%, -50%) scale(1.35); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+.count-bump { display: inline-block; animation: count-bump 700ms cubic-bezier(.2,1.6,.4,1) both; color: var(--unlock-accent-dark); }
+@keyframes count-bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+
+/* Buttons feel pressed. */
+.ui-button:active:not(:disabled) { transform: scale(.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  .confetti, .zone-reveal-glow { display: none; }
+  .result-points, .zone-label.just-opened, .count-bump { animation: none; }
+  .result-progress .result-progress-fill { animation: none; }
+}
