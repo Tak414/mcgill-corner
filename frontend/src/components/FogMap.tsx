@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { divIcon, latLngBounds, type DivIcon, type LatLngExpression } from 'leaflet';
 import { MapContainer, Marker, Pane, Polygon, Rectangle, TileLayer, useMap, useMapEvents, ZoomControl } from 'react-leaflet';
 import { CloudFogOverlay } from './CloudFogOverlay';
+import pinIconUrl from '../assets/pin.png';
 import type { FogMapProps, EventSummary, ZoneProgress, Zones } from './types';
 import { zoneFullName, zoneShortName } from './zoneNames';
 
@@ -23,12 +24,12 @@ const GLOW_MS = REVEAL_MS + 1600;
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
 function eventIcon(event: EventSummary, selected: boolean) {
-  const label = event.going_count > 0 ? String(event.going_count) : '·';
+  const label = event.going_count > 0 ? String(event.going_count) : '';
   return divIcon({
     className: '',
-    html: `<div class="event-marker${selected ? ' selected' : ''}" aria-hidden="true">${label}</div>`,
-    iconSize: [42, 42],
-    iconAnchor: [21, 21],
+    html: `<div class="event-marker${selected ? ' selected' : ''}" aria-hidden="true"><img class="event-marker-pin" src="${pinIconUrl}" alt="" /><span class="event-marker-badge">${label}</span></div>`,
+    iconSize: [44, 44],
+    iconAnchor: [22, 40],
   });
 }
 

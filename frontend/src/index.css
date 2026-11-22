@@ -40,8 +40,55 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 
 .leaflet-container { font: inherit; background: #e9efeb; }
 .leaflet-control-attribution { font-size: 9px !important; }
-.event-marker { display: grid; width: 42px; height: 42px; place-items: center; border: 2px solid white; border-radius: 50%; background: #172421; color: white; box-shadow: 0 4px 14px rgba(18,34,29,.3); font-size: 13px; font-weight: 800; }
-.event-marker.selected { background: var(--unlock-accent); box-shadow: 0 0 0 5px rgba(22,125,98,.2), 0 4px 14px rgba(18,34,29,.25); }
+.event-marker {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 3px 6px rgba(18, 34, 29, 0.35));
+  transition: transform 0.18s ease, filter 0.18s ease;
+  cursor: pointer;
+}
+.event-marker-pin {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+.event-marker-badge {
+  position: absolute;
+  top: 40.6%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9.5px;
+  font-weight: 850;
+  line-height: 1;
+  color: #172421;
+  pointer-events: none;
+}
+.event-marker:hover {
+  transform: translateY(-2px) scale(1.06);
+  filter: drop-shadow(0 5px 10px rgba(18, 34, 29, 0.45));
+}
+.event-marker.selected {
+  transform: scale(1.18);
+  transform-origin: 50% 91%;
+  filter: drop-shadow(0 0 6px rgba(22, 125, 98, 0.85)) drop-shadow(0 4px 12px rgba(18, 34, 29, 0.45));
+}
+.event-marker.selected .event-marker-badge {
+  background: #f0fdf4;
+  color: var(--unlock-accent-dark);
+}
 /* Zone labels drawn in the middle of each grid cell (FogMap ZoneLabels). */
 .fog-map .zone-label,
 .zone-label {
