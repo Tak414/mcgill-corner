@@ -440,6 +440,16 @@ button.topbar-avatar:focus-visible { outline: 3px solid rgba(22,125,98,.35); out
 .event-form-fields { display: grid; gap: 17px; padding: 20px 0; }.event-form-fields > label,.event-form-fields > div,.event-time-fields label { display: grid; gap: 2px; }.event-form-fields .ui-label small { color: #8a9790; font-weight: 500; }.event-description { min-height: 90px; resize: vertical; }.event-time-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }.event-time-fields input { padding-right: 8px; font-size: .82rem; }
 .event-form-actions { display: flex; justify-content: flex-end; gap: 9px; padding-top: 16px; border-top: 1px solid var(--unlock-line); }.event-form-actions .ui-button { min-width: 130px; }.event-form-error { margin: 0 0 12px; color: #a43d32; font-size: .84rem; }
 @media (max-width: 440px) { .event-form-actions { flex-direction: column-reverse; }.event-form-actions .ui-button { width: 100%; } }
+/* iPhone fit: grid children may shrink below their content, and Safari's date inputs drop their own wide minimum. */
+.event-form-fields > *, .event-time-fields > label { min-width: 0; }
+.event-time-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.event-time-fields input[type="datetime-local"] { -webkit-appearance: none; appearance: none; display: block; width: 100%; min-width: 0; max-width: 100%; text-align: left; }
+.event-time-fields input::-webkit-date-and-time-value { text-align: left; }
+@media (max-width: 560px) {
+  .event-time-fields { grid-template-columns: minmax(0, 1fr); }
+  /* 16px stops iOS Safari from zooming the page in when a field is tapped. */
+  .event-form .ui-field, .event-time-fields input, .location-search-input input { font-size: 16px; }
+}
 @media (max-width: 640px) {
   .ui-page { padding: 16px; }
   .gallery-shell { padding: 20px 12px 40px; }
