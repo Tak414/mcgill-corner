@@ -1,10 +1,33 @@
-# UNLOCK — CodeJam 16
+# UNLOCK
 
 > Events and places are the excuse; people are the point.
 
-A mobile web app that gets newly arrived, shy McGill students out of their rooms and talking to someone. Montreal starts covered in fog. You clear it by going to events and meeting other users there in person.
+A mobile web app that gets newly arrived, shy McGill students out of their rooms and talking to someone. Montreal starts covered in fog. You clear it by going to real events and meeting people there in person: two people enter each other's 4-digit code, both earn points, and the fog over that part of the city lifts.
 
-**Track:** People First (CodeJam 16, McGill, November 2026)
+Built at **CodeJam 16** (McGill, November 2026), People First track.
+
+**[Try the live demo →](https://mcgill-corner.vercel.app)** No sign-up: tap **Explore as Alex Chen**, RSVP to the choir concert at Pollack Hall, and enter Sophie's code `2468`. A few seconds later Sophie "enters" yours, the fog lifts over McGill / Downtown, and you climb from #9 to #6. The demo runs entirely in your browser (see [Demo mode](#demo-mode)).
+
+## My role
+
+UNLOCK was a team project. I owned the parts that make it work end to end:
+
+- **API contract.** I designed the contract between the frontend and backend ([`openapi.yaml`](contract/openapi.yaml) and [`api-contract.md`](contract/api-contract.md)): every request and response shape, every error code, and every game rule, written before either side was built so both could work in parallel.
+- **Backend.** I implemented the Laravel JSON API: auth with Sanctum, events, RSVPs, the code exchange, points, zone unlocks and the leaderboard, with feature tests.
+- **Frontend integration.** I connected the React app to the API: TanStack Query data fetching, polling, mutations, and error handling by `error.code`.
+- **Reward moments.** I built the feedback that makes meeting someone feel good: the result card with a count-up, confetti and progress bar; the map flying to the zone while its fog clears; the rank-up slide on the leaderboard; sounds generated with the Web Audio API; vibration; and toast notifications.
+
+The UI design is by my CodeJam teammate.
+
+## Technical highlights
+
+- **Contract first.** One OpenAPI file is the source of truth. The frontend's TypeScript types are generated from it (`npm run gen:api`), so a shape change breaks the build instead of the app.
+- **The server decides every rule.** The code window, whether an exchange completed, points, unlocks and an event's zone are all computed by the API; the client only displays results.
+- **No lost exchanges.** Both people must enter each other's code. The exchange is one row per pair, written in a single transaction that re-reads the row with a lock, so two people entering at the same moment still complete exactly once.
+- **Exact zone math.** Montreal is a 10×10 grid. Zones are computed in integer micro-degrees, not floating point, so a point on a boundary lands in the same zone on the server, in the browser and in the seeder.
+- **A reliable live feed.** Completed exchanges are polled every 5 s with a `since` cursor based on the server's clock, and both players get their result card whoever entered their code first.
+- **Motion with care.** The fog reveal, the rank-up slide (a FLIP animation) and the count-ups all respect `prefers-reduced-motion`, and the celebration buttons take focus for keyboard and screen-reader users.
+- **Demo mode.** With `VITE_DEMO_MODE=true`, the app swaps the network for an in-browser implementation of the same contract and rules, so the deployed demo needs no server.
 
 ## The problem
 
@@ -81,6 +104,15 @@ Suggested scripts in `frontend/package.json`:
 }
 ```
 
+### Demo mode
+
+Build or run the frontend with `VITE_DEMO_MODE=true` and every API request is answered in the browser by [`frontend/src/api/demo/demoServer.ts`](frontend/src/api/demo/demoServer.ts). It follows the same contract and rules and uses the same accounts and events as the seeder. State is kept in `localStorage` and starts over after 6 hours, or when you press **Reset demo** on the login page. At each event, one explorer plays the person you meet: their code is shown in the event sheet, and they enter yours 4 seconds after you enter theirs.
+
+```bash
+cd frontend
+VITE_DEMO_MODE=true npm run dev        # PowerShell: $env:VITE_DEMO_MODE='true'; npm run dev
+```
+
 ### Working without the backend (mock server)
 
 ```bash
@@ -91,9 +123,9 @@ Then point the frontend at `VITE_API_URL=http://localhost:4010`. Responses follo
 
 ## Demo accounts
 
-Live app: https://mcgill-corner.vercel.app. Seed with `php artisan migrate:fresh --seed` (production: add `--force`).
+These accounts exist both in demo mode and after `php artisan migrate:fresh --seed`.
 
-**Start here:** log in as `attendee1` and `attendee2` on two phones, RSVP to an open event, and enter each other's codes. Pollack Concert Hall (zone 45) or Upstairs Jazz Bar (zone 35) is the best choice: neither account has opened that zone yet, so each earns +300 (100 for meeting + 200 zone bonus), the fog clears, and both climb the leaderboard (attendee1 #9 → #6, attendee2 #10 → #7).
+**Two-phone demo:** log in as `attendee1` and `attendee2` on two phones, RSVP to an open event, and enter each other's codes. Pollack Concert Hall (zone 45) or Upstairs Jazz Bar (zone 35) is the best choice: neither account has opened that zone yet, so each earns +300 (100 for meeting + 200 zone bonus), the fog clears, and both climb the leaderboard (attendee1 #9 → #6, attendee2 #10 → #7).
 
 | Role | Email | Password | Start |
 |---|---|---|---|
@@ -153,4 +185,5 @@ Laravel · Sanctum · React · Vite · TypeScript · Leaflet · OpenStreetMap ·
 
 ## Deployment
 
-The frontend is deployed with Vercel and the backend is deployed with Laravel Cloud.
+- Frontend: Vercel, built with `VITE_DEMO_MODE=true`, so the public demo needs no backend.
+- Backend: ran on Laravel Cloud with Postgres during the hackathon. Locally and in tests it uses SQLite. To run the full stack, follow [Running locally](#running-locally).
