@@ -10,7 +10,7 @@ Built at **CodeJam 16** (McGill, November 2026), People First track.
 
 ### Demo videos
 
-Recorded on an iPhone against the live app during CodeJam 16.
+Recorded on an iPhone against the live app during CodeJam 16. Both are in the [UNLOCK playlist](https://www.youtube.com/playlist?list=PLYCcY2kaLh4o).
 
 | Student side | Host side |
 | :---: | :---: |
