@@ -47,7 +47,6 @@ Hosts (clubs, organizers) create the events. They don't earn points.
 
 | Doc | What it holds |
 |---|---|
-| [Requirements](https://claude.ai/artifact/F7xUKJgSB1oa12SR8VXNSw) | Problem, target user, value, scope, flows, architecture, open issues (shared with the team) |
 | [`contract/openapi.yaml`](contract/openapi.yaml) | **Source of truth** for every request and response shape |
 | [`contract/api-contract.md`](contract/api-contract.md) | The rules (zones, codes, points) and the reasons behind them |
 
