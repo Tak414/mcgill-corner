@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { EventSheet, FogMap } from '../components';
-import { messageFor } from '../api';
+import { DEMO_MODE, messageFor } from '../api';
+import { demoPartnerFor } from '../api/demo/demoServer';
 import { useCancelRsvp, useEvent, useEvents, useExchange, useMe, useRsvp, useZones } from '../hooks';
 import { useAttendeeShell } from './attendeeContext';
 
@@ -101,8 +102,14 @@ export function MapPage() {
           onCancelRsvp={handleCancelRsvp}
           onSubmitCode={handleSubmitCode}
           onClose={() => selectEvent(null)}
+          demoPartner={DEMO_MODE ? metOrNull(event.data, demoPartnerFor(event.data.id)) : null}
         />
       )}
     </>
   );
+}
+
+/** The demo partner's hint, until the visitor has met them at this event. */
+function metOrNull(event: { people_met_here: { name: string }[] }, partner: { name: string; code: string } | null) {
+  return partner && !event.people_met_here.some((person) => person.name === partner.name) ? partner : null;
 }
