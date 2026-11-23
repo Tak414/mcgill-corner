@@ -1,4 +1,5 @@
 import type { components } from './schema';
+import { handleDemoRequest } from './demo/demoServer';
 
 export type ErrorCode = components['schemas']['ErrorCode'];
 /** Contract error codes plus client-side ones: NETWORK (no JSON / server unreachable), UNKNOWN (JSON that isn't the Error shape). */
@@ -25,6 +26,9 @@ export function isApiError(e: unknown): e is ApiError {
 
 const BASE_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api';
 
+/** VITE_DEMO_MODE=true: no backend; every request is answered in the browser by api/demo/demoServer.ts. */
+export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
+
 let authToken: string | null = null;
 let onUnauthorized: (() => void) | null = null;
 
@@ -45,6 +49,16 @@ type RequestOptions = {
 };
 
 export async function request<T>(path: string, { method = 'GET', body, query }: RequestOptions = {}): Promise<T> {
+  if (DEMO_MODE) {
+    const sentToken = authToken;
+    try {
+      return (await handleDemoRequest(method, path, query ?? {}, body, sentToken)) as T;
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401 && sentToken && onUnauthorized) onUnauthorized();
+      throw e;
+    }
+  }
+
   let url = BASE_URL + path;
   if (query) {
     const params = new URLSearchParams();

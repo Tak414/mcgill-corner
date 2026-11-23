@@ -13,9 +13,10 @@ export { Leaderboard } from './Leaderboard';
 export { HostEventList } from './HostEventList';
 export { LocationPicker } from './LocationPicker';
 export { EventForm } from './EventForm';
+export { DemoPanel } from './DemoPanel';
 export { zoneShortName, zoneFullName } from './zoneNames';
 export { nextGoal } from './leaderboardStats';
-export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, CodeInputProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, RankUpCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps, HostEventListProps, LocationPickerProps, EventFormProps } from './types';
+export type { AuthFormProps, TopBarProps, BottomTabsProps, FogMapProps, CodeInputProps, EventSheetProps, ExchangeResultProps, UnlockCelebrationProps, RankUpCelebrationProps, ToastStackProps, ToastItem, LeaderboardProps, HostEventListProps, LocationPickerProps, EventFormProps, DemoPanelProps, DemoPartner } from './types';
 
 export type {
   Zones,

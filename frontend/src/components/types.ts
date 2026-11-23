@@ -71,6 +71,19 @@ export type EventSheetProps = {
   /* exactly 4 digits */
   onSubmitCode: (code: string) => void;
   onClose: () => void;
+  /* demo mode only: someone at this event whose code the visitor can enter */
+  demoPartner?: DemoPartner | null;
+};
+
+export type DemoPartner = { name: string; code: string };
+
+export type DemoPanelProps = {
+  isSubmitting: boolean;
+  /* signs in as a demo account */
+  onExplore: (as: 'attendee' | 'host') => void;
+  /* starts the demo world over */
+  onReset: () => void;
+  wasReset: boolean;
 };
 
 
