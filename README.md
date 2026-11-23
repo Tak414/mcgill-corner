@@ -8,6 +8,15 @@ Built at **CodeJam 16** (McGill, November 2026), People First track.
 
 **[Try the live demo →](https://mcgill-corner.vercel.app)** No sign-up: tap **Explore as Alex Chen**, RSVP to the choir concert at Pollack Hall, and enter Sophie's code `2468`. A few seconds later Sophie "enters" yours, the fog lifts over McGill / Downtown, and you climb from #9 to #6. The demo runs entirely in your browser (see [Demo mode](#demo-mode)).
 
+### Demo videos
+
+Recorded on an iPhone against the live app during CodeJam 16.
+
+| Student side | Host side |
+| :---: | :---: |
+| [![Student side: RSVP, code exchange, fog reveal and rank-up](https://img.youtube.com/vi/hcjOoFPeGw0/hqdefault.jpg)](https://youtube.com/shorts/hcjOoFPeGw0) | [![Host side: creating an event and picking its location](https://img.youtube.com/vi/Hs12N6lxkLw/hqdefault.jpg)](https://youtube.com/shorts/Hs12N6lxkLw) |
+| RSVP, meet someone, enter their code, watch the fog lift and your rank climb | Create an event, pick its place on the map, and see which zone it unlocks |
+
 ## My role
 
 UNLOCK was a team project. I owned the parts that make it work end to end:
